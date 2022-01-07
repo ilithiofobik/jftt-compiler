@@ -6,6 +6,15 @@ from lexer import LangLexer
 class LangParser(Parser):
     # AUXILARY FUNCTIONS
 
+    def optimize_registers(self, tokens):
+        ranking = dict()
+        for token in tokens:
+            if token.type == "PIDENTIFIER":
+                if token.value not in ranking:
+                    ranking[token.value] = 0
+                ranking[token.value] = ranking[token.value] + 1
+        sorted_ranking = sorted(ranking.items(), key=lambda kv: kv[1], reverse=True)
+
     # generates a number to register a
     # uses register c as a helper
     def generateNumber(self, num):
@@ -52,6 +61,7 @@ class LangParser(Parser):
     def __init__(self):
         self.var = {}
         self.arr = {}
+        self.iter = {}
         self.inits = set()
         self.memtop = 0
 
@@ -146,6 +156,9 @@ class LangParser(Parser):
 
     @_('FOR PIDENTIFIER FROM value TO value DO commands ENDFOR')
     def command(self, p):
+        id = p[1]
+        self.iter[id] = self.memtop
+        self.memtop += 1
         return ""
 
     @_('FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR')
@@ -312,12 +325,25 @@ class LangParser(Parser):
         category1, code1, val1 = p[0]
         category2, code2, val2 = p[2]
 
+        if category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+
+            if val2 == 1:
+                return code1
+
+            if val2 == -1:
+                return code1 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
+
+        if category1 == "num":
+            if val1 == 0:
+                return "RESET a\n"        
+
         # loading values, dividend to d, divisor to e
-        lines = code1 +"SWAP d\n" + code2 + "SWAP e\n"
-        # jump if divisor == 0
-        lines += "JZERO 1\n"
+        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
+
         # calculating msb to register b
-        lines += "RESET a\n" +\
+        pos_case = "RESET a\n" +\
         "RESET b\n" +\
         "RESET c\n" +\
         "DEC c\n" +\
@@ -328,7 +354,7 @@ class LangParser(Parser):
         "INC b\n" +\
         "JUMP -4\n"
         # setting divisor to divisor << (mst+1), and c (quotient) to 0
-        lines += "SWAP e\n" +\
+        pos_case += "SWAP e\n" +\
         "INC b\n" +\
         "SHIFT b\n" +\
         "DEC b\n" +\
@@ -336,7 +362,7 @@ class LangParser(Parser):
         "SWAP b\n" +\
         "RESET c\n"
         # while loop
-        lines += "JNEG 23\n" +\
+        pos_case += "JNEG 23\n" +\
         "SWAP b\n" +\
         "SWAP e\n" +\
         "RESET e\n" +\
@@ -361,12 +387,53 @@ class LangParser(Parser):
         "JUMP -22\n" +\
         "SWAP c\n"
 
+        # negate result, and have fun with floor
+        neg_case = pos_case +\
+        "SWAP c\n" +\
+        "SWAP d\n" +\
+        "JZERO 2\n" +\
+        "INC c\n" +\
+        "RESET a\n" +\
+        "SUB c\n"
+
+        pos_len = pos_case.count('\n')
+        neg_len = neg_case.count('\n')
+
+        non_zero_divisor = f"JPOS {12 + pos_len}\n" +\
+        "SWAP e\n" +\
+        "RESET a\n" +\
+        "SUB e\n" +\
+        "SWAP e\n" +\
+        "SWAP d\n" +\
+        f"JPOS {12 + pos_len}\n" +\
+        "SWAP d\n" +\
+        "RESET a\n" +\
+        "SUB d\n" +\
+        "SWAP d\n" +\
+        pos_case +\
+        f"JUMP {11 + neg_len}" +\
+        "SWAP e\n" +\
+        "SWAP d\n" +\
+        f"JPOS {-3 -pos_len}\n" +\
+        "SWAP d\n" +\
+        "RESET a\n" +\
+        "SUB d\n" +\
+        "SWAP d\n" +\
+        neg_case +\
+        "JUMP 2\n"
+
+        non_zero_len = non_zero_divisor.count('\n')
+
+        lines += f"SWAP e\n JZERO {non_zero_len + 1}\n" +\
+        non_zero_divisor +\
+        "RESET a\n"
+
         return lines
 
 
     @_('value MOD value')
     def expression(self, p):
-        pass
+        return ""
 
     @_('value EQ value')
     def condition(self, p):
