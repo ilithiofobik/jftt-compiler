@@ -269,8 +269,6 @@ class LangParser(Parser):
             "SWAP c\n" +\
             "RESET e\n" +\
             "INC e\n" +\
-            "RESET f\n" +\
-            "DEC f\n" +\
             "RESET b\n" +\
             "SWAP d\n" +\
             "JPOS 9\n" +\
@@ -285,7 +283,11 @@ class LangParser(Parser):
             "SWAP d\n" +\
             "RESET a\n" +\
             "ADD d\n" +\
-            "SHIFT f\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "RESET e\n" +\
+            "INC e\n" +\
             "SHIFT e\n" +\
             "SUB d\n" +\
             "JZERO 4\n" +\
@@ -296,7 +298,11 @@ class LangParser(Parser):
             "SHIFT e\n" +\
             "SWAP c\n" +\
             "SWAP d\n" +\
-            "SHIFT f\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "RESET e\n" +\
+            "INC e\n" +\
             "JUMP -16\n" +\
             "SWAP b\n"
         return lines
