@@ -6,6 +6,21 @@ from lexer import LangLexer
 class LangParser(Parser):
     # AUXILARY FUNCTIONS
 
+    def subtraction(self, value1, value2):
+        category1, code1, val1 = value1
+        category2, code2, val2 = value2
+
+        if category1 == "num" and category2 == "num":
+            return self.generateNumber(val1 - val2)
+
+        if category2 == "num" and val2 >= 0 and val2 <= 10:
+            return code1 + val2 * "DEC a\n"
+
+        if category2 == "num" and val2 < 0 and val2 >= -10:
+            return code1 + -val2 * "INC a\n"
+
+        return code2 + "SWAP d\n" + code1 + "SUB d\n"
+
     def optimize_registers(self, tokens):
         ranking = dict()
         for token in tokens:
@@ -110,9 +125,9 @@ class LangParser(Parser):
 
     @_('PIDENTIFIER "[" NUM ":" NUM "]"')
     def declarations(self, p):
-        id = p[2]
-        first = p[4]
-        last = p[6]
+        id = p[0]
+        first = p[2]
+        last = p[4]
 
         if last < first:
             msg = f"Błąd w linii {p.lineno}: niewłaściwy zakres tablicy {id}"
@@ -141,19 +156,83 @@ class LangParser(Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
-        return ""
+        cond_category, cond_code = p[1]
+        inner_code = p[3]
+        inner_len = inner_code.count('\n')
+        else_code = p[5]
+        else_len = else_code.count('\n')
+
+        if cond_category == "eq":
+            return cond_code + f"JZERO {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "neq":
+            return cond_code + f"JZERO {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
+        if cond_category == "le":
+            return cond_code + f"JNEG {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "geq":
+            return cond_code + f"JNEG {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
+        if cond_category == "ge":
+            return cond_code + f"JPOS {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "leq":
+            return cond_code + f"JPOS {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
-        return ""
+        cond_category, cond_code = p[1]
+        inner_code = p[3]
+        inner_len = inner_code.count('\n')
+
+        if cond_category == "eq":
+            return cond_code + "JZERO 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "neq":
+            return cond_code + f"JZERO {inner_len + 1}\n" + inner_code
+        if cond_category == "le":
+            return cond_code + "JNEG 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "geq":
+            return cond_code + f"JNEG {inner_len + 1}\n" + inner_code
+        if cond_category == "ge":
+            return cond_code + "JPOS 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
+        if cond_category == "leq":
+            return cond_code + f"JPOS {inner_len + 1}\n" + inner_code
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
-        return ""
+        cond_category, cond_code = p[1]
+        cond_len = cond_code.count('\n')
+        inner_code = p[3]
+        inner_len = inner_code.count('\n')
+
+        if cond_category == "eq":
+            return cond_code + "JZERO 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
+        if cond_category == "neq":
+            return cond_code + f"JZERO {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
+        if cond_category == "le":
+            return cond_code + "JNEG 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
+        if cond_category == "geq":
+            return cond_code + f"JNEG {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
+        if cond_category == "ge":
+            return cond_code + "JPOS 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
+        if cond_category == "leq":
+            return cond_code + f"JPOS {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
 
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, p):
-        return ""
+        cond_category, cond_code = p[1]
+        cond_len = cond_code.count('\n')
+        inner_code = p[3]
+        inner_len = inner_code.count('\n')
+
+        if cond_category == "eq":
+            return inner_code + cond_code + "JZERO 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
+        if cond_category == "neq":
+            return inner_code + cond_code + f"JZERO  {-inner_len -cond_len}\n"
+        if cond_category == "le":
+           return inner_code + cond_code + "JNEG 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
+        if cond_category == "geq":
+           return inner_code + cond_code + f"JNEG  {-inner_len -cond_len}\n"
+        if cond_category == "ge":
+            return inner_code + cond_code + "JPOS 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
+        if cond_category == "leq":
+            return inner_code + cond_code + f"JPOS  {-inner_len -cond_len}\n"
 
     @_('FOR PIDENTIFIER FROM value TO value DO commands ENDFOR')
     def command(self, p):
@@ -206,19 +285,7 @@ class LangParser(Parser):
 
     @_('value MINUS value')
     def expression(self, p):
-        category1, code1, val1 = p[0]
-        category2, code2, val2 = p[2]
-
-        if category1 == "num" and category2 == "num":
-            return self.generateNumber(val1 - val2)
-
-        if category2 == "num" and val2 >= 0 and val2 <= 10:
-            return code1 + val2 * "DEC a\n"
-
-        if category2 == "num" and val2 < 0 and val2 >= -10:
-            return code1 + -val2 * "INC a\n"
-
-        return code2 + "SWAP d\n" + code1 + "SUB d\n"
+        return self.subtraction(p[0], p[2])
 
     @_('value TIMES value')
     def expression(self, p):
@@ -429,7 +496,7 @@ class LangParser(Parser):
         lines += "SWAP e\n" +\
             f"JZERO {non_zero_len + 1}\n" +\
             non_zero_divisor +\
-            "RESET a\n" 
+            "RESET a\n"
 
         return lines
 
@@ -562,27 +629,27 @@ class LangParser(Parser):
 
     @_('value EQ value')
     def condition(self, p):
-        pass
+        return ("eq", self.subtraction(p[0], p[2]))
 
     @_('value NEQ value')
     def condition(self, p):
-        pass
+        return ("neq", self.subtraction(p[0], p[2]))
 
     @_('value LE value')
     def condition(self, p):
-        pass
+        return ("le", self.subtraction(p[0], p[2]))
 
     @_('value GE value')
     def condition(self, p):
-        pass
+        return ("ge", self.subtraction(p[0], p[2]))
 
     @_('value LEQ value')
     def condition(self, p):
-        pass
+        return ("leq", self.subtraction(p[0], p[2]))
 
     @_('value GEQ value')
     def condition(self, p):
-        pass
+        return ("geq", self.subtraction(p[0], p[2]))
 
     # loads value to register a
     @_('NUM')
