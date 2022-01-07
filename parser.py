@@ -13,7 +13,8 @@ class LangParser(Parser):
                 if token.value not in ranking:
                     ranking[token.value] = 0
                 ranking[token.value] = ranking[token.value] + 1
-        sorted_ranking = sorted(ranking.items(), key=lambda kv: kv[1], reverse=True)
+        sorted_ranking = sorted(
+            ranking.items(), key=lambda kv: kv[1], reverse=True)
 
     # generates a number to register a
     # uses register c as a helper
@@ -289,7 +290,7 @@ class LangParser(Parser):
             "SWAP d\n" +\
             "RESET a\n" +\
             "SUB c\n" +\
-            "SWAP c\n"+\
+            "SWAP c\n" +\
             "RESET a\n" +\
             "SUB d\n" +\
             "JZERO 17\n" +\
@@ -337,103 +338,227 @@ class LangParser(Parser):
 
         if category1 == "num":
             if val1 == 0:
-                return "RESET a\n"        
+                return "RESET a\n"
 
         # loading values, dividend to d, divisor to e
         lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
 
         # calculating msb to register b
         pos_case = "RESET a\n" +\
-        "RESET b\n" +\
-        "RESET c\n" +\
-        "DEC c\n" +\
-        "ADD d\n" +\
-        "JPOS 2\n" +\
-        "JUMP 4\n" +\
-        "SHIFT c\n" +\
-        "INC b\n" +\
-        "JUMP -4\n"
+            "RESET b\n" +\
+            "RESET c\n" +\
+            "DEC c\n" +\
+            "ADD d\n" +\
+            "JPOS 2\n" +\
+            "JUMP 4\n" +\
+            "SHIFT c\n" +\
+            "INC b\n" +\
+            "JUMP -4\n"
         # setting divisor to divisor << (mst+1), and c (quotient) to 0
         pos_case += "SWAP e\n" +\
-        "INC b\n" +\
-        "SHIFT b\n" +\
-        "DEC b\n" +\
-        "SWAP e\n" +\
-        "SWAP b\n" +\
-        "RESET c\n"
+            "INC b\n" +\
+            "SHIFT b\n" +\
+            "DEC b\n" +\
+            "SWAP e\n" +\
+            "SWAP b\n" +\
+            "RESET c\n"
         # while loop
         pos_case += "JNEG 23\n" +\
-        "SWAP b\n" +\
-        "SWAP e\n" +\
-        "RESET e\n" +\
-        "DEC e\n" +\
-        "SHIFT e\n" +\
-        "SWAP e\n" +\
-        "RESET a\n" +\
-        "ADD d\n" +\
-        "SUB e\n" +\
-        "JNEG 10\n" +\
-        "RESET a\n" +\
-        "SWAP d\n" +\
-        "SUB e\n" +\
-        "SWAP d\n" +\
-        "RESET a\n" +\
-        "INC a\n" +\
-        "SHIFT b\n" +\
-        "ADD c\n" +\
-        "SWAP c\n" +\
-        "DEC b\n" +\
-        "SWAP b\n" +\
-        "JUMP -22\n" +\
-        "SWAP c\n"
+            "SWAP b\n" +\
+            "SWAP e\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "SWAP e\n" +\
+            "RESET a\n" +\
+            "ADD d\n" +\
+            "SUB e\n" +\
+            "JNEG 10\n" +\
+            "RESET a\n" +\
+            "SWAP d\n" +\
+            "SUB e\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "INC a\n" +\
+            "SHIFT b\n" +\
+            "ADD c\n" +\
+            "SWAP c\n" +\
+            "DEC b\n" +\
+            "SWAP b\n" +\
+            "JUMP -22\n" +\
+            "SWAP c\n"
 
         # negate result, and have fun with floor
         neg_case = pos_case +\
-        "SWAP c\n" +\
-        "SWAP d\n" +\
-        "JZERO 2\n" +\
-        "INC c\n" +\
-        "RESET a\n" +\
-        "SUB c\n"
+            "SWAP c\n" +\
+            "SWAP d\n" +\
+            "JZERO 2\n" +\
+            "INC c\n" +\
+            "RESET a\n" +\
+            "SUB c\n"
 
         pos_len = pos_case.count('\n')
         neg_len = neg_case.count('\n')
 
+        # divisor in register a in the beginning
         non_zero_divisor = f"JPOS {12 + pos_len}\n" +\
-        "SWAP e\n" +\
-        "RESET a\n" +\
-        "SUB e\n" +\
-        "SWAP e\n" +\
-        "SWAP d\n" +\
-        f"JPOS {12 + pos_len}\n" +\
-        "SWAP d\n" +\
-        "RESET a\n" +\
-        "SUB d\n" +\
-        "SWAP d\n" +\
-        pos_case +\
-        f"JUMP {11 + neg_len}" +\
-        "SWAP e\n" +\
-        "SWAP d\n" +\
-        f"JPOS {-3 -pos_len}\n" +\
-        "SWAP d\n" +\
-        "RESET a\n" +\
-        "SUB d\n" +\
-        "SWAP d\n" +\
-        neg_case +\
-        "JUMP 2\n"
+            "SWAP e\n" +\
+            "RESET a\n" +\
+            "SUB e\n" +\
+            "SWAP e\n" +\
+            "SWAP d\n" +\
+            f"JPOS {12 + pos_len}\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "SWAP d\n" +\
+            pos_case +\
+            f"JUMP {10 + neg_len}\n" +\
+            "SWAP e\n" +\
+            "SWAP d\n" +\
+            f"JPOS {-4 -pos_len}\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "SWAP d\n" +\
+            neg_case +\
+            "JUMP 2\n"
 
         non_zero_len = non_zero_divisor.count('\n')
 
-        lines += f"SWAP e\n JZERO {non_zero_len + 1}\n" +\
-        non_zero_divisor +\
-        "RESET a\n"
+        lines += "SWAP e\n" +\
+            f"JZERO {non_zero_len + 1}\n" +\
+            non_zero_divisor +\
+            "RESET a\n" 
 
         return lines
 
-
     @_('value MOD value')
     def expression(self, p):
-        return ""
+        category1, code1, val1 = p[0]
+        category2, code2, val2 = p[2]
+
+        if category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+
+            if val2 == 1:
+                return "RESET a\n"
+
+            if val2 == -1:
+                return "RESET a\n"
+
+        if category1 == "num":
+            if val1 == 0:
+                return "RESET a\n"
+
+        # loading values, dividend to d, divisor to e
+        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
+
+        # calculating msb to register b
+        pp_case = "RESET a\n" +\
+            "RESET b\n" +\
+            "RESET c\n" +\
+            "DEC c\n" +\
+            "ADD d\n" +\
+            "JPOS 2\n" +\
+            "JUMP 4\n" +\
+            "SHIFT c\n" +\
+            "INC b\n" +\
+            "JUMP -4\n"
+        # setting divisor to divisor << (mst+1), and c (quotient) to 0
+        pp_case += "SWAP e\n" +\
+            "INC b\n" +\
+            "SHIFT b\n" +\
+            "DEC b\n" +\
+            "SWAP e\n" +\
+            "SWAP b\n" +\
+            "RESET c\n"
+        # while loop
+        pp_case += "JNEG 23\n" +\
+            "SWAP b\n" +\
+            "SWAP e\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "SWAP e\n" +\
+            "RESET a\n" +\
+            "ADD d\n" +\
+            "SUB e\n" +\
+            "JNEG 10\n" +\
+            "RESET a\n" +\
+            "SWAP d\n" +\
+            "SUB e\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "INC a\n" +\
+            "SHIFT b\n" +\
+            "ADD c\n" +\
+            "SWAP c\n" +\
+            "DEC b\n" +\
+            "SWAP b\n" +\
+            "JUMP -22\n" +\
+            "SWAP d\n"
+
+        pn_case = pp_case +\
+            "JZERO 2\n" +\
+            "SUB e\n"
+
+        nn_case = pp_case +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n"
+
+        np_case = pp_case +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "JZERO 2\n" +\
+            "ADD e\n"
+
+        pp_len = pp_case.count('\n')
+        pn_len = pn_case.count('\n')
+        np_len = np_case.count('\n')
+        nn_len = nn_case.count('\n')
+
+        # divisor in register a in the beginning
+        non_zero_divisor = f"JPOS {14 + nn_len + pn_len}\n" +\
+            "SWAP e\n" +\
+            "RESET a\n" +\
+            "SUB e\n" +\
+            "SWAP e\n" +\
+            "SWAP d\n" +\
+            f"JPOS {6 + nn_len}\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "SWAP d\n" +\
+            nn_case +\
+            f"JUMP {12 + pn_len + np_len + pp_len}\n" +\
+            "SWAP d\n" +\
+            pn_case +\
+            f"JUMP {10 + np_len + pp_len}\n" +\
+            "SWAP e\n" +\
+            "SWAP d\n" +\
+            f"JPOS {6 + np_len}\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "SWAP d\n" +\
+            np_case +\
+            f"JUMP {4 + pp_len}" +\
+            "SWAP d\n" +\
+            pp_case +\
+            "JUMP 2\n"
+
+        non_zero_len = non_zero_divisor.count('\n')
+
+        lines += "SWAP e\n" +\
+            f"JZERO {non_zero_len + 1}\n" +\
+            non_zero_divisor +\
+            "RESET a\n"
+
+        return lines
 
     @_('value EQ value')
     def condition(self, p):
