@@ -11,8 +11,7 @@ class LangParser(Parser):
     def generateNumber(self, num):
         if num >= 0:
             if num <= 20:
-                lines = "(generowanie liczby 1- start)\n" + "RESET a\n" + \
-                    num * "INC a\n" + "(generowanie liczby - stop)\n"
+                lines = "RESET a\n" + num * "INC a\n"
                 return lines
             lines = ""
             while num > 0:
@@ -25,24 +24,19 @@ class LangParser(Parser):
             lines = "RESET a\n" + "RESET c\n" + "INC c\n" + lines
             return lines
 
+        num = -num
+        if num <= 20:
+            lines = "RESET a\n" + num * "DEC a\n"
+            return lines
         lines = ""
-        while num < 0:
-            if num >= -20:
-                lines = "(generowanie liczby - start)\n" + "RESET a\n" + - \
-                    num * "DEC a\n" + "(generowanie liczby - stop)\n"
-                return lines
-            if num == 1:
-                lines = "(generowanie liczby -1- start)\n" + "RESET a\n" + \
-                    "DEC a\n" + lines + "(generowanie liczby - 1 stop)\n"
-                return lines
+        while num > 0:
             if num % 2 == 0:
                 num = num // 2
                 lines = "SHIFT c\n" + lines
             else:
-                num = num + 1
+                num = num - 1
                 lines = "DEC a\n" + lines
-        lines = "(generowanie liczby - start)\n RESET a\n" + "RESET c\n" + \
-            "INC c\n" + lines + "(generowanie liczby - stop)\n"
+        lines = "RESET a\n" + "RESET c\n" + "INC c\n" + lines
         return lines
 
     # ERROR CHECKERS
@@ -132,7 +126,7 @@ class LangParser(Parser):
         if category == "var":
             self.inits.add(id)
 
-        return code1 + "SWAP d\n" + code2 + "STORE d\n"
+        return code2 + "SWAP d\n" + code1 + "SWAP d\n" + "STORE d\n"
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
@@ -163,7 +157,7 @@ class LangParser(Parser):
     def command(self, p):
         _, id, code, _ = p[1]
         self.inits.add(id)
-        return "(READ - start)\n" + code + "SWAP b\n" + "GET\n" + "STORE b\n" + "(READ - stop)\n"
+        return code + "SWAP b\n" + "GET\n" + "STORE b\n"
 
     @_('WRITE value ";"')
     def command(self, p):
@@ -181,20 +175,20 @@ class LangParser(Parser):
 
         if category1 == "num" and category2 == "num":
             return self.generateNumber(val1 + val2)
-        
+
         if category1 == "num" and val1 >= 0 and val1 <= 10:
             return code2 + val1 * "INC a\n"
 
         if category1 == "num" and val1 < 0 and val1 >= -10:
-            return code2 + -val1 * "DEC a\n"    
-        
+            return code2 + -val1 * "DEC a\n"
+
         if category2 == "num" and val2 >= 0 and val2 <= 10:
             return code1 + val2 * "INC a\n"
 
         if category2 == "num" and val2 < 0 and val2 >= -10:
-            return code1 + -val2 * "DEC a\n"    
+            return code1 + -val2 * "DEC a\n"
 
-        return code2 + "SWAP b\n" + code1 + "ADD b\n"
+        return code2 + "SWAP d\n" + code1 + "ADD d\n"
 
     @_('value MINUS value')
     def expression(self, p):
@@ -203,14 +197,14 @@ class LangParser(Parser):
 
         if category1 == "num" and category2 == "num":
             return self.generateNumber(val1 - val2)
-        
+
         if category2 == "num" and val2 >= 0 and val2 <= 10:
             return code1 + val2 * "DEC a\n"
 
         if category2 == "num" and val2 < 0 and val2 >= -10:
-            return code1 + -val2 * "INC a\n"    
+            return code1 + -val2 * "INC a\n"
 
-        return code2 + "SWAP b\n" + code1 + "SUB b\n"
+        return code2 + "SWAP d\n" + code1 + "SUB d\n"
 
     @_('value TIMES value')
     def expression(self, p):
@@ -222,61 +216,90 @@ class LangParser(Parser):
 
         lines = ""
         if category1 == "num":
-            if val1 > 1:                
-                while val1 > 0:
-                    if val1 % 2 == 0:
-                        lines = "SHIFT c\n" + lines
-                        val1 = val1 // 2
-                    else:
-                        lines = "ADD b\n" + lines
-                        val1 = val1 - 1
-                return code2 + 'SWAP b\n' + "RESET a\n"+  "RESET c\n" + "INC c\n" + lines 
+            if val1 == -1:
+                return code2 + "SWAP d\n" + "RESET a\n" + "SUB d\n"
 
-            if val1 < 0:                
-                while val1 < 0:
-                    if val1 % 2 == 0:
-                        lines = "SHIFT c\n" + lines
-                        val1 = val1 // 2
-                    else:
-                        lines = "SUB b\n" + lines
-                        val1 = val1 + 1
-                return code2 + 'SWAP b\n' + "RESET a\n"+  "RESET c\n" + "INC c\n" + lines 
+            if val1 == 0:
+                return "RESET a\n"
 
             if val1 == 1:
                 return code2
 
-            else:
-                return "RESET a\n"
-        
-        if category2 == "num":
-            if val2 > 1:                
-                while val2 > 0:
-                    if val2 % 2 == 0:
-                        lines = "SHIFT c\n" + lines
-                        val2 = val2 // 2
-                    else:
-                        lines = "ADD b\n" + lines
-                        val2 = val2 - 1
-                return code1 + 'SWAP b\n' + "RESET a\n"+  "RESET c\n" + "INC c\n" + lines 
+            oper = "ADD b\n"
+            if val1 < 0:
+                val1 = -val1
+                oper = "SUB b\n"
 
-            if val2 < 0:                
-                while val2 < 0:
-                    if val2 % 2 == 0:
-                        lines = "SHIFT c\n" + lines
-                        val2 = val2 // 2
-                    else:
-                        lines = "SUB b\n" + lines
-                        val2 = val2 + 1
-                return code1 + 'SWAP b\n' + "RESET a\n"+  "RESET c\n" + "INC c\n" + lines 
+            while val1 > 0:
+                if val1 % 2 == 0:
+                    lines = "SHIFT d\n" + lines
+                    val1 = val1 // 2
+                else:
+                    lines = oper + lines
+                    val1 = val1 - 1
+            return code2 + 'SWAP b\n' + "RESET a\n" + "RESET d\n" + "INC d\n" + lines
+
+        if category2 == "num":
+            if val2 == -1:
+                return code1 + "SWAP d\n" + "RESET a\n" + "SUB d\n"
+
+            if val2 == 0:
+                return "RESET a\n"
 
             if val2 == 1:
                 return code1
 
-            else:
-                return "RESET a\n"
+            oper = "ADD b\n"
+            if val2 < 0:
+                val2 = -val2
+                oper = "SUB b\n"
 
-        return code2 + "SWAP b\n" + code1 + "ADD b\n"
+            while val2 > 0:
+                if val2 % 2 == 0:
+                    lines = "SHIFT d\n" + lines
+                    val2 = val2 // 2
+                else:
+                    lines = oper + lines
+                    val2 = val2 - 1
+            return code1 + 'SWAP b\n' + "RESET a\n" + "RESET d\n" + "INC d\n" + lines
 
+        lines = code2 +\
+            "SWAP d\n" +\
+            code1 +\
+            "SWAP c\n" +\
+            "RESET e\n" +\
+            "INC e\n" +\
+            "RESET f\n" +\
+            "DEC f\n" +\
+            "RESET b\n" +\
+            "SWAP d\n" +\
+            "JPOS 9\n" +\
+            "JZERO 25\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "SUB c\n" +\
+            "SWAP c\n"+\
+            "RESET a\n" +\
+            "SUB d\n" +\
+            "JZERO 17\n" +\
+            "SWAP d\n" +\
+            "RESET a\n" +\
+            "ADD d\n" +\
+            "SHIFT f\n" +\
+            "SHIFT e\n" +\
+            "SUB d\n" +\
+            "JZERO 4\n" +\
+            "SWAP b\n" +\
+            "ADD c\n" +\
+            "SWAP b\n" +\
+            "SWAP c\n" +\
+            "SHIFT e\n" +\
+            "SWAP c\n" +\
+            "SWAP d\n" +\
+            "SHIFT f\n" +\
+            "JUMP -16\n" +\
+            "SWAP b\n"
+        return lines
 
     @_('value DIV value')
     def expression(self, p):
@@ -381,7 +404,7 @@ class LangParser(Parser):
         if id in self.arr:
             msg = f"Błąd w linii {p.lineno}: niewłaściwe użycie zmiennej {id}"
             raise Exception(msg)
-        
+
         if id not in self.inits:
             msg = f"Błąd w linii {p.lineno}: użycie niezainicjowanej zmiennej {id}"
             raise Exception(msg)
