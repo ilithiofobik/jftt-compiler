@@ -303,7 +303,60 @@ class LangParser(Parser):
 
     @_('value DIV value')
     def expression(self, p):
-        pass
+        category1, code1, val1 = p[0]
+        category2, code2, val2 = p[2]
+
+        # loading values, dividend to d, divisor to e
+        lines = code1 +"SWAP d\n" + code2 + "SWAP e\n"
+        # jump if divisor == 0
+        lines += "JZERO 1\n"
+        # calculating msb to register b
+        lines += "RESET a\n" +\
+        "RESET b\n" +\
+        "RESET c\n" +\
+        "DEC c\n" +\
+        "ADD d\n" +\
+        "JPOS 2\n" +\
+        "JUMP 4\n" +\
+        "SHIFT c\n" +\
+        "INC b\n" +\
+        "JUMP -4\n"
+        # setting divisor to divisor << (mst+1), and c (quotient) to 0
+        lines += "SWAP e\n" +\
+        "INC b\n" +\
+        "SHIFT b\n" +\
+        "DEC b\n" +\
+        "SWAP e\n" +\
+        "SWAP b\n" +\
+        "RESET c\n"
+        # while loop
+        lines += "JNEG 23\n" +\
+        "SWAP b\n" +\
+        "SWAP e\n" +\
+        "RESET e\n" +\
+        "DEC e\n" +\
+        "SHIFT e\n" +\
+        "SWAP e\n" +\
+        "RESET a\n" +\
+        "ADD d\n" +\
+        "SUB e\n" +\
+        "JNEG 10\n" +\
+        "RESET a\n" +\
+        "SWAP d\n" +\
+        "SUB e\n" +\
+        "SWAP d\n" +\
+        "RESET a\n" +\
+        "INC a\n" +\
+        "SHIFT b\n" +\
+        "ADD c\n" +\
+        "SWAP c\n" +\
+        "DEC b\n" +\
+        "SWAP b\n" +\
+        "JUMP -22\n" +\
+        "SWAP c\n"
+
+        return lines
+
 
     @_('value MOD value')
     def expression(self, p):
