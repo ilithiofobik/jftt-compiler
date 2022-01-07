@@ -216,9 +216,9 @@ class LangParser(Parser):
 
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, p):
-        cond_category, cond_code = p[1]
+        inner_code = p[1]
+        cond_category, cond_code= p[3]
         cond_len = cond_code.count('\n')
-        inner_code = p[3]
         inner_len = inner_code.count('\n')
 
         if cond_category == "eq":
@@ -226,9 +226,9 @@ class LangParser(Parser):
         if cond_category == "neq":
             return inner_code + cond_code + f"JZERO  {-inner_len -cond_len}\n"
         if cond_category == "le":
-           return inner_code + cond_code + "JNEG 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
+            return inner_code + cond_code + "JNEG 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
         if cond_category == "geq":
-           return inner_code + cond_code + f"JNEG  {-inner_len -cond_len}\n"
+            return inner_code + cond_code + f"JNEG  {-inner_len -cond_len}\n"
         if cond_category == "ge":
             return inner_code + cond_code + "JPOS 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
         if cond_category == "leq":
@@ -243,6 +243,9 @@ class LangParser(Parser):
 
     @_('FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR')
     def command(self, p):
+        id = p[1]
+        self.iter[id] = self.memtop
+        self.memtop += 1
         return ""
 
     #
@@ -350,6 +353,8 @@ class LangParser(Parser):
             "SWAP c\n" +\
             "RESET e\n" +\
             "INC e\n" +\
+            "RESET f\n" +\
+            "DEC f\n" +\
             "RESET b\n" +\
             "SWAP d\n" +\
             "JPOS 9\n" +\
@@ -357,18 +362,14 @@ class LangParser(Parser):
             "SWAP d\n" +\
             "RESET a\n" +\
             "SUB c\n" +\
-            "SWAP c\n" +\
+            "SWAP c\n"+\
             "RESET a\n" +\
             "SUB d\n" +\
             "JZERO 17\n" +\
             "SWAP d\n" +\
             "RESET a\n" +\
             "ADD d\n" +\
-            "RESET e\n" +\
-            "DEC e\n" +\
-            "SHIFT e\n" +\
-            "RESET e\n" +\
-            "INC e\n" +\
+            "SHIFT f\n" +\
             "SHIFT e\n" +\
             "SUB d\n" +\
             "JZERO 4\n" +\
@@ -379,11 +380,7 @@ class LangParser(Parser):
             "SHIFT e\n" +\
             "SWAP c\n" +\
             "SWAP d\n" +\
-            "RESET e\n" +\
-            "DEC e\n" +\
-            "SHIFT e\n" +\
-            "RESET e\n" +\
-            "INC e\n" +\
+            "SHIFT f\n" +\
             "JUMP -16\n" +\
             "SWAP b\n"
         return lines
@@ -613,7 +610,7 @@ class LangParser(Parser):
             "SUB d\n" +\
             "SWAP d\n" +\
             np_case +\
-            f"JUMP {4 + pp_len}" +\
+            f"JUMP {4 + pp_len}\n" +\
             "SWAP d\n" +\
             pp_case +\
             "JUMP 2\n"

@@ -13,6 +13,7 @@ if __name__ == '__main__':
         # for tok in lexer.tokenize(text):
             #print('type=%r, value=%r' % (tok.type, tok.value))
 
+        parser.optimize_registers(lexer.tokenize(text))
         parsed = parser.parse(lexer.tokenize(text))
         print(parser.var)
         print(parser.arr)

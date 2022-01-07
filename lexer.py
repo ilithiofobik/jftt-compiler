@@ -23,6 +23,7 @@ class LangLexer(Lexer):
 
     IF = r'IF'
     THEN = r'THEN'
+    ELSE = r'ELSE'
     ENDIF = r'ENDIF'
 
     WHILE = r'WHILE'
