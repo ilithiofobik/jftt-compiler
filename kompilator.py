@@ -15,9 +15,9 @@ if __name__ == '__main__':
 
         parser.optimize_registers(lexer.tokenize(text))
         parsed = parser.parse(lexer.tokenize(text))
-        print(parser.var)
-        print(parser.arr)
-        print(parser.inits)
+        #print(parser.var)
+        #print(parser.arr)
+        #print(parser.inits)
 
         if parsed:
             fw = open(argv[2], "w")

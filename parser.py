@@ -76,8 +76,8 @@ class LangParser(Parser):
 
     precedence = (
         ('nonassoc', 'EQ', 'NEQ', 'LE', 'GE', 'LEQ', 'GEQ'),
-        ('left', 'PLUS', 'MINUS'),
-        ('left', 'TIMES', 'DIV', 'MOD'),
+        ('nonassoc', 'PLUS', 'MINUS'),
+        ('nonassoc', 'TIMES', 'DIV', 'MOD'),
     )
 
     def __init__(self):
@@ -152,22 +152,34 @@ class LangParser(Parser):
 
     @_('commands command')
     def commands(self, p):
+        if type(p[0]) == type(()):
+            self.iter.pop(p[1][1])
+            return p[0] + p[1][0]
         return p[0] + p[1]
 
     @_('command')
     def commands(self, p):
+        if type(p[0]) == type(()):
+            self.iter.pop(p[0][1])
+            return p[0][0]
         return p[0]
 
     @_('identifier ASSIGN expression ";"')
     def command(self, p):
-        category, id, code1, _ = p[0]
+        category, id, code1, lineno = p[0]
         code2 = p[2]
+
+        if id in self.iter:
+            msg = f"Błąd w linii {lineno}: zabroniona modyfikacja iteratora {id}"
+            raise Exception(msg)
 
         if category == "var":
             self.inits.add(id)
 
         if category == "var_reg":
+            self.inits.add(id)
             return code2 + f"SWAP {self.regs[id]}\n"
+        
         return code2 + "SWAP d\n" + code1 + "SWAP d\n" + "STORE d\n"
 
     @_('IF condition THEN commands ELSE commands ENDIF')
@@ -250,19 +262,26 @@ class LangParser(Parser):
         if cond_category == "leq":
             return inner_code + cond_code + f"JPOS  {-inner_len -cond_len}\n"
 
-    @_('FOR PIDENTIFIER FROM value TO value DO commands ENDFOR')
-    def command(self, p):
-        id = p[1]
-        from_code = p[3] 
-        to_code = p[5]
-        inner_code = p[7]
-        from_register = False
-
-        # TODO: kod bez rejestrów
+    @_('PIDENTIFIER')
+    def iterator(self, p):
+        id = p[0]
         if id not in self.regs:
             self.iter[id] = self.memtop
             self.memtop += 1
+            return id
+        else:
+            self.iter[id] = ("reg", self.regs[id])
+            return id
 
+    @_('FOR iterator FROM value TO value DO commands ENDFOR')
+    def command(self, p):
+        id = p[1]
+        from_code = p[3][1]
+        to_code = p[5][1]
+        inner_code = p[7]
+
+        # TODO: kod bez rejestrów
+        if id not in self.regs:
             return self.generateNumber[self.iter[id]] +\
             "SWAP b\n" +\
             from_code +\
@@ -283,7 +302,6 @@ class LangParser(Parser):
             inner_code +\
             "JUMP 1\n"
         else:
-            self.iter[id] = ("reg", self.regs[id])
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
@@ -294,24 +312,20 @@ class LangParser(Parser):
             to_code +\
             f"INC {reg}\n" +\
             f"SUB {reg}\n" +\
-            f"JNEG {inner_code + 1}\n" +\
+            f"JNEG {inner_len + 2}\n" +\
             inner_code +\
-            f"JUMP {-inner_len -to_code_len -3}\n"      
+            f"JUMP {-inner_len -to_code_len -3}\n", id
+   
 
-    @_('FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR')
+    @_('FOR iterator FROM value DOWNTO value DO commands ENDFOR')
     def command(self, p):
         id = p[1]
-        from_code = p[3] 
-        to_code = p[5]
+        from_code = p[3][1]
+        to_code = p[5][1]
         inner_code = p[7]
-        from_register = False
-        print(self.iter)
 
         # TODO: kod bez rejestrów
         if id not in self.regs:
-            self.iter[id] = self.memtop
-            self.memtop += 1
-
             return self.generateNumber[self.iter[id]] +\
             "SWAP b\n" +\
             from_code +\
@@ -332,7 +346,6 @@ class LangParser(Parser):
             inner_code +\
             "JUMP 1\n"
         else:
-            self.iter[id] = ("reg", self.regs[id])
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
@@ -343,9 +356,9 @@ class LangParser(Parser):
             to_code +\
             f"DEC {reg}\n" +\
             f"SUB {reg}\n" +\
-            f"JPOS {inner_code + 1}\n" +\
+            f"JPOS {inner_len + 2}\n" +\
             inner_code +\
-            f"JUMP {-inner_len -to_code_len -3}\n" 
+            f"JUMP {-inner_len -to_code_len -3}\n", id
 
     @_('READ identifier ";"')
     def command(self, p):
@@ -759,7 +772,7 @@ class LangParser(Parser):
     def value(self, p):
         category, id, code, lineno = p[0]
 
-        if category == "var" and id not in self.inits:
+        if category != "arr" and id not in self.iter and id not in self.inits:
             msg = f"Błąd w linii {lineno}: użycie niezainicjowanej zmiennej {id}"
             raise Exception(msg)
 
@@ -778,14 +791,15 @@ class LangParser(Parser):
             msg = f"Błąd w linii {p.lineno}: niewłaściwe użycie zmiennej tablicowej {id}"
             raise Exception(msg)
 
-        if id in self.iter:
-            return ("iter", id, self.generateNumber(self.iter[id]), p.lineno)
-
-        if id not in self.var:
+        if id not in self.var and id not in self.iter:
             msg = f"Błąd w linii {p.lineno}: niezadeklarowana zmienna {id}"
             raise Exception(msg)
 
-        category, address = self.var[id]
+        if id in self.var:
+            category, address = self.var[id]
+        else:
+            category, address = self.iter[id]        
+        
         if category == "mem":
             return ("var", id, self.generateNumber(address), p.lineno)
         else:
@@ -831,17 +845,24 @@ class LangParser(Parser):
             msg = f"Błąd w linii {p.lineno}: niewłaściwe użycie zmiennej {id}"
             raise Exception(msg)
 
+        if id not in self.var and id not in self.iter:
+            msg = f"Błąd w linii {p.lineno}: niezadeklarowana zmienna {id}"
+            raise Exception(msg)
+
         if id not in self.inits and id not in self.iter:
             msg = f"Błąd w linii {p.lineno}: użycie niezainicjowanej zmiennej {id}"
             raise Exception(msg)
 
         lines = ""
-        category, address = self.var[id]
+        if id in self.var:
+            category, address = self.var[id]
+        else:
+            category, address = self.iter[id]
         if category == "mem":
             lines += self.generateNumber(address)
             lines += "LOAD a\n SWAP b\n"
         else:
-            lines += f"RESET a\n ADD {self.var[id][1]}\n SWAP b\n"
+            lines += f"RESET a\n ADD {address}\n SWAP b\n"
         lines += self.generateNumber(memtop - first)
         lines += "ADD b\n"
 
