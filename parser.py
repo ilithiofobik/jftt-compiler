@@ -152,7 +152,7 @@ class LangParser(Parser):
 
     @_('commands command')
     def commands(self, p):
-        if type(p[0]) == type(()):
+        if type(p[1]) == type(()):
             self.iter.pop(p[1][1])
             return p[0] + p[1][0]
         return p[0] + p[1]
@@ -179,7 +179,7 @@ class LangParser(Parser):
         if category == "var_reg":
             self.inits.add(id)
             return code2 + f"SWAP {self.regs[id]}\n"
-        
+
         return code2 + "SWAP d\n" + code1 + "SWAP d\n" + "STORE d\n"
 
     @_('IF condition THEN commands ELSE commands ENDIF')
@@ -266,7 +266,7 @@ class LangParser(Parser):
     def iterator(self, p):
         id = p[0]
         if id not in self.regs:
-            self.iter[id] = self.memtop
+            self.iter[id] = ("mem", self.memtop)
             self.memtop += 1
             return id
         else:
@@ -279,43 +279,45 @@ class LangParser(Parser):
         from_code = p[3][1]
         to_code = p[5][1]
         inner_code = p[7]
+        inner_len = inner_code.count('\n')
+        to_code_len = to_code.count('\n')
 
         # TODO: kod bez rejestrów
         if id not in self.regs:
-            return self.generateNumber[self.iter[id]] +\
-            "SWAP b\n" +\
-            from_code +\
-            "DEC a" +\
-            "STORE b\n" +\
-            "JUMP 1\n" +\
-            self.generateNumber[self.iter[id]] +\
-            "SWAP b\n" +\
-            "LOAD b\n" +\
-            "INC a\n" +\
-            "STORE b\n" +\
-            to_code +\
-            "SWAP b\n" +\
-            self.generateNumber[self.iter[id]] +\
-            "LOAD a\n" +\
-            "SUB b\n" +\
-            "JNEG 1\n" +\
-            inner_code +\
-            "JUMP 1\n"
+            get_address = self.generateNumber(self.iter[id][1])
+            get_address_len = get_address.count("\n")
+
+            return get_address +\
+                "SWAP b\n" +\
+                from_code +\
+                "DEC a\n" +\
+                "STORE b\n" +\
+                get_address +\
+                "SWAP d\n" +\
+                "LOAD d\n" +\
+                "INC a\n" +\
+                "STORE d\n" +\
+                "SWAP d\n" +\
+                to_code +\
+                f"SUB d\n" +\
+                f"JNEG {inner_len + 2}\n" +\
+                inner_code +\
+                f"JUMP {-inner_len -to_code_len -get_address_len -7}\n", id
+
         else:
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
 
             return from_code +\
-            "DEC a\n" +\
-            f"SWAP {reg}\n" +\
-            to_code +\
-            f"INC {reg}\n" +\
-            f"SUB {reg}\n" +\
-            f"JNEG {inner_len + 2}\n" +\
-            inner_code +\
-            f"JUMP {-inner_len -to_code_len -3}\n", id
-   
+                "DEC a\n" +\
+                f"SWAP {reg}\n" +\
+                to_code +\
+                f"INC {reg}\n" +\
+                f"SUB {reg}\n" +\
+                f"JNEG {inner_len + 2}\n" +\
+                inner_code +\
+                f"JUMP {-inner_len -to_code_len -3}\n", id
 
     @_('FOR iterator FROM value DOWNTO value DO commands ENDFOR')
     def command(self, p):
@@ -323,42 +325,45 @@ class LangParser(Parser):
         from_code = p[3][1]
         to_code = p[5][1]
         inner_code = p[7]
+        inner_len = inner_code.count('\n')
+        to_code_len = to_code.count('\n')
 
         # TODO: kod bez rejestrów
         if id not in self.regs:
-            return self.generateNumber[self.iter[id]] +\
-            "SWAP b\n" +\
-            from_code +\
-            "DEC a" +\
-            "STORE b\n" +\
-            "JUMP 1\n" +\
-            self.generateNumber[self.iter[id]] +\
-            "SWAP b\n" +\
-            "LOAD b\n" +\
-            "INC a\n" +\
-            "STORE b\n" +\
-            to_code +\
-            "SWAP b\n" +\
-            self.generateNumber[self.iter[id]] +\
-            "LOAD a\n" +\
-            "SUB b\n" +\
-            "JNEG 1\n" +\
-            inner_code +\
-            "JUMP 1\n"
+            get_address = self.generateNumber(self.iter[id][1])
+            get_address_len = get_address.count("\n")
+            
+            return get_address +\
+                "SWAP b\n" +\
+                from_code +\
+                "INC a\n" +\
+                "STORE b\n" +\
+                get_address +\
+                "SWAP d\n" +\
+                "LOAD d\n" +\
+                "DEC a\n" +\
+                "STORE d\n" +\
+                "SWAP d\n" +\
+                to_code +\
+                f"SUB d\n" +\
+                f"JPOS {inner_len + 2}\n" +\
+                inner_code +\
+                f"JUMP {-inner_len -to_code_len -get_address_len -7}\n", id
+
         else:
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
 
             return from_code +\
-            "INC a\n" +\
-            f"SWAP {reg}\n" +\
-            to_code +\
-            f"DEC {reg}\n" +\
-            f"SUB {reg}\n" +\
-            f"JPOS {inner_len + 2}\n" +\
-            inner_code +\
-            f"JUMP {-inner_len -to_code_len -3}\n", id
+                "INC a\n" +\
+                f"SWAP {reg}\n" +\
+                to_code +\
+                f"DEC {reg}\n" +\
+                f"SUB {reg}\n" +\
+                f"JPOS {inner_len + 2}\n" +\
+                inner_code +\
+                f"JUMP {-inner_len -to_code_len -3}\n", id
 
     @_('READ identifier ";"')
     def command(self, p):
@@ -398,6 +403,7 @@ class LangParser(Parser):
         if category2 == "num" and val2 < 0 and val2 >= -10:
             return code1 + -val2 * "DEC a\n"
 
+        print(code2 + "SWAP d\n" + code1 + "ADD d\n")
         return code2 + "SWAP d\n" + code1 + "ADD d\n"
 
     @_('value MINUS value')
@@ -467,23 +473,25 @@ class LangParser(Parser):
             "SWAP c\n" +\
             "RESET e\n" +\
             "INC e\n" +\
-            "RESET f\n" +\
-            "DEC f\n" +\
             "RESET b\n" +\
             "SWAP d\n" +\
             "JPOS 9\n" +\
-            "JZERO 25\n" +\
+            "JZERO 33\n" +\
             "SWAP d\n" +\
             "RESET a\n" +\
             "SUB c\n" +\
             "SWAP c\n" +\
             "RESET a\n" +\
             "SUB d\n" +\
-            "JZERO 17\n" +\
+            "JZERO 25\n" +\
             "SWAP d\n" +\
             "RESET a\n" +\
             "ADD d\n" +\
-            "SHIFT f\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "RESET e\n" +\
+            "INC e\n" +\
             "SHIFT e\n" +\
             "SUB d\n" +\
             "JZERO 4\n" +\
@@ -494,8 +502,12 @@ class LangParser(Parser):
             "SHIFT e\n" +\
             "SWAP c\n" +\
             "SWAP d\n" +\
-            "SHIFT f\n" +\
-            "JUMP -16\n" +\
+            "RESET e\n" +\
+            "DEC e\n" +\
+            "SHIFT e\n" +\
+            "RESET e\n" +\
+            "INC e\n" +\
+            "JUMP -24\n" +\
             "SWAP b\n"
         return lines
 
@@ -798,8 +810,8 @@ class LangParser(Parser):
         if id in self.var:
             category, address = self.var[id]
         else:
-            category, address = self.iter[id]        
-        
+            category, address = self.iter[id]
+
         if category == "mem":
             return ("var", id, self.generateNumber(address), p.lineno)
         else:
