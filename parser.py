@@ -19,6 +19,9 @@ class LangParser(Parser):
         if category2 == "num" and val2 < 0 and val2 >= -10:
             return code1 + -val2 * "INC a\n"
 
+        if val1 == val2:
+            return "RESET a\n"
+
         return code2 + "SWAP d\n" + code1 + "SUB d\n"
 
     def optimize_registers(self, tokens):
@@ -39,6 +42,7 @@ class LangParser(Parser):
 
     # generates a number to register a
     # uses register c as a helper
+
     def generateNumber(self, num):
         if num >= 0:
             if num <= 20:
@@ -190,17 +194,17 @@ class LangParser(Parser):
         else_code = p[5]
         else_len = else_code.count('\n')
 
-        if cond_category == "eq":
+        if cond_category == "EQ":
             return cond_code + f"JZERO {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "neq":
+        if cond_category == "NEQ":
             return cond_code + f"JZERO {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
-        if cond_category == "le":
+        if cond_category == "LE":
             return cond_code + f"JNEG {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "geq":
+        if cond_category == "GEQ":
             return cond_code + f"JNEG {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
-        if cond_category == "ge":
+        if cond_category == "GE":
             return cond_code + f"JPOS {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "leq":
+        if cond_category == "LEQ":
             return cond_code + f"JPOS {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
 
     @_('IF condition THEN commands ENDIF')
@@ -209,17 +213,17 @@ class LangParser(Parser):
         inner_code = p[3]
         inner_len = inner_code.count('\n')
 
-        if cond_category == "eq":
+        if cond_category == "EQ":
             return cond_code + "JZERO 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "neq":
+        if cond_category == "NEQ":
             return cond_code + f"JZERO {inner_len + 1}\n" + inner_code
-        if cond_category == "le":
+        if cond_category == "LE":
             return cond_code + "JNEG 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "geq":
+        if cond_category == "GEQ":
             return cond_code + f"JNEG {inner_len + 1}\n" + inner_code
-        if cond_category == "ge":
+        if cond_category == "GE":
             return cond_code + "JPOS 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
-        if cond_category == "leq":
+        if cond_category == "LEQ":
             return cond_code + f"JPOS {inner_len + 1}\n" + inner_code
 
     @_('WHILE condition DO commands ENDWHILE')
@@ -229,17 +233,17 @@ class LangParser(Parser):
         inner_code = p[3]
         inner_len = inner_code.count('\n')
 
-        if cond_category == "eq":
+        if cond_category == "EQ":
             return cond_code + "JZERO 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
-        if cond_category == "neq":
+        if cond_category == "NEQ":
             return cond_code + f"JZERO {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
-        if cond_category == "le":
+        if cond_category == "LE":
             return cond_code + "JNEG 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
-        if cond_category == "geq":
+        if cond_category == "GEQ":
             return cond_code + f"JNEG {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
-        if cond_category == "ge":
+        if cond_category == "GE":
             return cond_code + "JPOS 2\n" + f"JUMP {inner_len + 2}\n" + inner_code + f"JUMP {-2 - cond_len -inner_len}\n"
-        if cond_category == "leq":
+        if cond_category == "LEQ":
             return cond_code + f"JPOS {inner_len + 2}\n" + inner_code + f"JUMP {-1 - cond_len -inner_len}\n"
 
     @_('REPEAT commands UNTIL condition ";"')
@@ -249,130 +253,168 @@ class LangParser(Parser):
         cond_len = cond_code.count('\n')
         inner_len = inner_code.count('\n')
 
-        if cond_category == "eq":
+        if cond_category == "EQ":
             return inner_code + cond_code + "JZERO 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
-        if cond_category == "neq":
+        if cond_category == "NEQ":
             return inner_code + cond_code + f"JZERO  {-inner_len -cond_len}\n"
-        if cond_category == "le":
+        if cond_category == "LE":
             return inner_code + cond_code + "JNEG 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
-        if cond_category == "geq":
+        if cond_category == "GEQ":
             return inner_code + cond_code + f"JNEG  {-inner_len -cond_len}\n"
-        if cond_category == "ge":
+        if cond_category == "GE":
             return inner_code + cond_code + "JPOS 2\n" + f"JUMP {-inner_len -cond_len - 1}\n"
-        if cond_category == "leq":
+        if cond_category == "LEQ":
             return inner_code + cond_code + f"JPOS  {-inner_len -cond_len}\n"
 
     @_('PIDENTIFIER')
     def iterator(self, p):
         id = p[0]
+        id_to = p[0] + "TO"
         if id not in self.regs:
             self.iter[id] = ("mem", self.memtop)
             self.memtop += 1
-            return id
+            self.iter[id_to] = ("mem", self.memtop)
+            self.memtop += 1
+            return id, id_to
         else:
             self.iter[id] = ("reg", self.regs[id])
-            return id
+            self.iter[id_to] = ("mem", self.memtop)
+            self.memtop += 1
+            return id, id_to
 
     @_('FOR iterator FROM value TO value DO commands ENDFOR')
     def command(self, p):
-        id = p[1]
+        id, id_to = p[1]
         from_code = p[3][1]
         to_code = p[5][1]
         inner_code = p[7]
         inner_len = inner_code.count('\n')
         to_code_len = to_code.count('\n')
 
-        # TODO: kod bez rejestrów
         if id not in self.regs:
             get_address = self.generateNumber(self.iter[id][1])
             get_address_len = get_address.count("\n")
+            get_to_address = self.generateNumber(self.iter[id_to][1])
+            get_to_address_len = get_to_address.count("\n")
+            load_to_value = get_to_address + "LOAD a\n"
+            load_to_value_len = get_to_address_len + 1
 
-            return get_address +\
-                "SWAP b\n" +\
+            return get_to_address +\
+                "SWAP d\n" +\
+                to_code +\
+                "STORE d\n" +\
+                get_address +\
+                "SWAP d\n" +\
                 from_code +\
                 "DEC a\n" +\
-                "STORE b\n" +\
+                "STORE d\n" +\
                 get_address +\
                 "SWAP d\n" +\
                 "LOAD d\n" +\
                 "INC a\n" +\
                 "STORE d\n" +\
                 "SWAP d\n" +\
-                to_code +\
+                load_to_value +\
                 f"SUB d\n" +\
                 f"JNEG {inner_len + 2}\n" +\
                 inner_code +\
-                f"JUMP {-inner_len -to_code_len -get_address_len -7}\n", id
+                f"JUMP {-inner_len -load_to_value_len -get_address_len -7}\n", id
 
         else:
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
 
-            return from_code +\
+            get_to_address = self.generateNumber(self.iter[id_to][1])
+            get_to_address_len = get_to_address.count("\n")
+            load_to_value = get_to_address + "LOAD a\n"
+            load_to_value_len = get_to_address_len + 1
+
+            return get_to_address +\
+                "SWAP d\n" +\
+                to_code +\
+                "STORE d\n" +\
+                from_code +\
                 "DEC a\n" +\
                 f"SWAP {reg}\n" +\
-                to_code +\
+                load_to_value +\
                 f"INC {reg}\n" +\
                 f"SUB {reg}\n" +\
                 f"JNEG {inner_len + 2}\n" +\
                 inner_code +\
-                f"JUMP {-inner_len -to_code_len -3}\n", id
+                f"JUMP {-inner_len -load_to_value_len -3}\n", id
 
     @_('FOR iterator FROM value DOWNTO value DO commands ENDFOR')
     def command(self, p):
-        id = p[1]
+        id, id_to = p[1]
         from_code = p[3][1]
         to_code = p[5][1]
         inner_code = p[7]
         inner_len = inner_code.count('\n')
         to_code_len = to_code.count('\n')
 
-        # TODO: kod bez rejestrów
         if id not in self.regs:
             get_address = self.generateNumber(self.iter[id][1])
             get_address_len = get_address.count("\n")
-            
-            return get_address +\
-                "SWAP b\n" +\
+            get_to_address = self.generateNumber(self.iter[id_to][1])
+            get_to_address_len = get_to_address.count("\n")
+            load_to_value = get_to_address + "LOAD a\n"
+            load_to_value_len = get_to_address_len + 1
+
+            return get_to_address +\
+                "SWAP d\n" +\
+                to_code +\
+                "STORE d\n" +\
+                get_address +\
+                "SWAP d\n" +\
                 from_code +\
                 "INC a\n" +\
-                "STORE b\n" +\
+                "STORE d\n" +\
                 get_address +\
                 "SWAP d\n" +\
                 "LOAD d\n" +\
                 "DEC a\n" +\
                 "STORE d\n" +\
                 "SWAP d\n" +\
-                to_code +\
+                load_to_value +\
                 f"SUB d\n" +\
                 f"JPOS {inner_len + 2}\n" +\
                 inner_code +\
-                f"JUMP {-inner_len -to_code_len -get_address_len -7}\n", id
+                f"JUMP {-inner_len -load_to_value_len -get_address_len -7}\n", id
 
         else:
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
             to_code_len = to_code.count('\n')
 
-            return from_code +\
+            get_to_address = self.generateNumber(self.iter[id_to][1])
+            get_to_address_len = get_to_address.count("\n")
+            load_to_value = get_to_address + "LOAD a\n"
+            load_to_value_len = get_to_address_len + 1
+
+            return get_to_address +\
+                "SWAP d\n" +\
+                to_code +\
+                "STORE d\n" +\
+                from_code +\
                 "INC a\n" +\
                 f"SWAP {reg}\n" +\
-                to_code +\
+                load_to_value +\
                 f"DEC {reg}\n" +\
                 f"SUB {reg}\n" +\
                 f"JPOS {inner_len + 2}\n" +\
                 inner_code +\
-                f"JUMP {-inner_len -to_code_len -3}\n", id
+                f"JUMP {-inner_len -load_to_value_len -3}\n", id
 
     @_('READ identifier ";"')
     def command(self, p):
         category, id, code, _ = p[1]
         self.inits.add(id)
-        if category == "var":
-            return code + "SWAP b\n" + "GET\n" + "STORE b\n"
+
         if category == "var_reg":
             return "GET\n" + f"SWAP {self.regs[id]}"
+
+        return code + "SWAP b\n" + "GET\n" + "STORE b\n"
 
     @_('WRITE value ";"')
     def command(self, p):
@@ -403,7 +445,6 @@ class LangParser(Parser):
         if category2 == "num" and val2 < 0 and val2 >= -10:
             return code1 + -val2 * "DEC a\n"
 
-        print(code2 + "SWAP d\n" + code1 + "ADD d\n")
         return code2 + "SWAP d\n" + code1 + "ADD d\n"
 
     @_('value MINUS value')
@@ -750,29 +791,15 @@ class LangParser(Parser):
 
         return lines
 
-    @_('value EQ value')
+    @_('value EQ value',
+       'value NEQ value',
+       'value LE value',
+       'value GE value',
+       'value LEQ value',
+       'value GEQ value'
+       )
     def condition(self, p):
-        return ("eq", self.subtraction(p[0], p[2]))
-
-    @_('value NEQ value')
-    def condition(self, p):
-        return ("neq", self.subtraction(p[0], p[2]))
-
-    @_('value LE value')
-    def condition(self, p):
-        return ("le", self.subtraction(p[0], p[2]))
-
-    @_('value GE value')
-    def condition(self, p):
-        return ("ge", self.subtraction(p[0], p[2]))
-
-    @_('value LEQ value')
-    def condition(self, p):
-        return ("leq", self.subtraction(p[0], p[2]))
-
-    @_('value GEQ value')
-    def condition(self, p):
-        return ("geq", self.subtraction(p[0], p[2]))
+        return (p[1], self.subtraction(p[0], p[2]))
 
     # loads value to register a
     @_('NUM')
@@ -789,9 +816,9 @@ class LangParser(Parser):
             raise Exception(msg)
 
         if category == "var_reg":
-            return (category, f"RESET a\n ADD {self.regs[id]}\n", None)
+            return (category, f"RESET a\n ADD {self.regs[id]}\n", id)
 
-        return (category, code + "LOAD a\n", None)
+        return (category, code + "LOAD a\n", id)
 
     # loads address to register a
     # returns loaded address and generated code
@@ -815,6 +842,7 @@ class LangParser(Parser):
         if category == "mem":
             return ("var", id, self.generateNumber(address), p.lineno)
         else:
+            # there address simply does not exist
             return ("var_reg", id, None, p.lineno)
 
     @_('PIDENTIFIER "[" NUM "]"')
@@ -836,7 +864,7 @@ class LangParser(Parser):
             msg = f"Błąd w linii {p.lineno}: indeks {id} poza zakresem tablicy {tab}"
             raise Exception(msg)
 
-        return ("arr", tab, self.generateNumber(memtop + id - first), p.lineno)
+        return ("arr", tab + str(id), self.generateNumber(memtop + id - first), p.lineno)
 
     @_('PIDENTIFIER "[" PIDENTIFIER "]"')
     def identifier(self, p):
@@ -878,7 +906,7 @@ class LangParser(Parser):
         lines += self.generateNumber(memtop - first)
         lines += "ADD b\n"
 
-        return ("arr", tab, lines, p.lineno)
+        return ("arr", tab + id, lines, p.lineno)
 
     def error(self, p):
         msg = f"Błąd w linii {p.lineno}: nierozpoznany napis {p.value}"
