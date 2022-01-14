@@ -1,0 +1,46 @@
+VAR
+	a, aa, b, c, d, e, f, g
+BEGIN
+	READ a;
+	READ aa;
+	READ b;
+	g ASSIGN 1111111111;
+	c ASSIGN a PLUS 10;
+	d ASSIGN b MINUS 5;
+	e ASSIGN 1;
+	f ASSIGN d PLUS e;
+
+	WRITE g;
+	WRITE a;
+	WRITE aa;
+	WRITE b;
+	WRITE c; ( c EQ a PLUS 10 )
+	WRITE d; ( d EQ b MINUS 5 )
+	WRITE e; ( e EQ 1 )
+	WRITE f; ( f EQ d PLUS e )
+	WRITE g;
+
+	IF a GE b THEN	( if a GE b then e EQ a PLUS c )
+		e ASSIGN a PLUS c;
+		IF aa LE a THEN	( if a GE aa then f EQ e TIMES aa )
+			f ASSIGN e TIMES aa;
+		ELSE
+			f ASSIGN e TIMES a;	( if a LEQ aa then f EQ e TIMES a )
+		ENDIF
+	ELSE		( if a LEQ b then e EQ b PLUS c )
+		e ASSIGN b PLUS c;
+		IF aa GE a THEN ( if aa GE a then f EQ e DIV a )
+			f ASSIGN e DIV a;
+		ELSE			( if aa LEQ a then f EQ e DIV aa )
+			f ASSIGN e DIV aa;
+		ENDIF
+	ENDIF
+
+	WRITE a;
+	WRITE aa;
+	WRITE b;
+	WRITE c;
+	WRITE d;
+	WRITE e;
+	WRITE f;
+END

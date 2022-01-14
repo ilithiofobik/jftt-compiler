@@ -1,0 +1,1 @@
+Błąd w linii 5: niezadeklarowana zmienna a

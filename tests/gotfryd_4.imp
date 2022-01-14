@@ -1,0 +1,18 @@
+VAR
+	a, aa, b, c, d, j, p, q, r
+BEGIN
+	READ a;
+	READ aa;
+	b ASSIGN 454;
+	c ASSIGN 1412111674;
+	d ASSIGN 987654321 MINUS 987656789; (d EQ 0)
+	j ASSIGN 999000001;
+	FOR i FROM j TO 999100000 DO
+		p ASSIGN i TIMES b;
+		q ASSIGN p MOD aa;
+		r ASSIGN c DIV q;
+		d ASSIGN d PLUS r;
+	ENDFOR
+
+	WRITE a; ( a jest wczytywana w linii 5 i nie jest wykorzystywana w obliczeniach )
+END

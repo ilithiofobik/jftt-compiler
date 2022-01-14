@@ -270,6 +270,11 @@ class LangParser(Parser):
     def iterator(self, p):
         id = p[0]
         id_to = p[0] + "TO"
+
+        if id in self.iter:
+            msg = f"Błąd w linii {p.lineno}: druga deklaracja {id}"
+            raise Exception(msg)
+
         if id not in self.regs:
             self.iter[id] = ("mem", self.memtop)
             self.memtop += 1
@@ -289,7 +294,6 @@ class LangParser(Parser):
         to_code = p[5][1]
         inner_code = p[7]
         inner_len = inner_code.count('\n')
-        to_code_len = to_code.count('\n')
 
         if id not in self.regs:
             get_address = self.generateNumber(self.iter[id][1])
@@ -323,8 +327,6 @@ class LangParser(Parser):
         else:
             reg = self.regs[id]
             inner_len = inner_code.count('\n')
-            to_code_len = to_code.count('\n')
-
             get_to_address = self.generateNumber(self.iter[id_to][1])
             get_to_address_len = get_to_address.count("\n")
             load_to_value = get_to_address + "LOAD a\n"
@@ -412,7 +414,7 @@ class LangParser(Parser):
         self.inits.add(id)
 
         if category == "var_reg":
-            return "GET\n" + f"SWAP {self.regs[id]}"
+            return "GET\n" + f"SWAP {self.regs[id]}\n"
 
         return code + "SWAP b\n" + "GET\n" + "STORE b\n"
 
@@ -433,17 +435,20 @@ class LangParser(Parser):
         if category1 == "num" and category2 == "num":
             return self.generateNumber(val1 + val2)
 
-        if category1 == "num" and val1 >= 0 and val1 <= 10:
+        if category1 == "num" and val1 >= 0 and val1 <= 20:
             return code2 + val1 * "INC a\n"
 
-        if category1 == "num" and val1 < 0 and val1 >= -10:
+        if category1 == "num" and val1 < 0 and val1 >= -20:
             return code2 + -val1 * "DEC a\n"
 
-        if category2 == "num" and val2 >= 0 and val2 <= 10:
+        if category2 == "num" and val2 >= 0 and val2 <= 20:
             return code1 + val2 * "INC a\n"
 
-        if category2 == "num" and val2 < 0 and val2 >= -10:
+        if category2 == "num" and val2 < 0 and val2 >= -20:
             return code1 + -val2 * "DEC a\n"
+
+        if val1 == val2:
+            return code1 + "RESET d\n" + "INC d\n" + "SHIFT d\n"
 
         return code2 + "SWAP d\n" + code1 + "ADD d\n"
 
@@ -557,6 +562,12 @@ class LangParser(Parser):
         category1, code1, val1 = p[0]
         category2, code2, val2 = p[2]
 
+        if category1 == "num" and category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+            else:
+                return self.generateNumber(val1 // val2)
+
         if category2 == "num":
             if val2 == 0:
                 return "RESET a\n"
@@ -570,6 +581,12 @@ class LangParser(Parser):
         if category1 == "num":
             if val1 == 0:
                 return "RESET a\n"
+
+        if val1 == val2:
+            return code1 +\
+                "JZERO 3\n" +\
+                "RESET a\n" +\
+                "INC a\n"
 
         # loading values, dividend to d, divisor to e
         lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
@@ -669,6 +686,12 @@ class LangParser(Parser):
         category1, code1, val1 = p[0]
         category2, code2, val2 = p[2]
 
+        if category1 == "num" and category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+            else:
+                return self.generateNumber(val1 % val2)
+
         if category2 == "num":
             if val2 == 0:
                 return "RESET a\n"
@@ -682,6 +705,9 @@ class LangParser(Parser):
         if category1 == "num":
             if val1 == 0:
                 return "RESET a\n"
+
+        if val1 == val2:
+            return "RESET a\n"
 
         # loading values, dividend to d, divisor to e
         lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
@@ -816,7 +842,7 @@ class LangParser(Parser):
             raise Exception(msg)
 
         if category == "var_reg":
-            return (category, f"RESET a\n ADD {self.regs[id]}\n", id)
+            return (category, f"RESET a\nADD {self.regs[id]}\n", id)
 
         return (category, code + "LOAD a\n", id)
 
@@ -900,9 +926,9 @@ class LangParser(Parser):
             category, address = self.iter[id]
         if category == "mem":
             lines += self.generateNumber(address)
-            lines += "LOAD a\n SWAP b\n"
+            lines += "LOAD a\nSWAP b\n"
         else:
-            lines += f"RESET a\n ADD {address}\n SWAP b\n"
+            lines += f"RESET a\nADD {address}\nSWAP b\n"
         lines += self.generateNumber(memtop - first)
         lines += "ADD b\n"
 

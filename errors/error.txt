@@ -1,0 +1,1 @@
+Błąd w linii 7: zabroniona modyfikacja iteratora i

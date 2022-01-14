@@ -1,0 +1,1 @@
+Błąd w linii 5: niewłaściwe użycie zmiennej tablicowej b

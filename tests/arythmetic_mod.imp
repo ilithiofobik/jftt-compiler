@@ -1,0 +1,99 @@
+VAR
+    a, b, c, tab[10:100000], offset, t[100:999999], i, j
+BEGIN
+    a ASSIGN 0 MOD 0;
+    WRITE a;
+
+    a ASSIGN 1 MOD 0;
+    WRITE a;
+
+    a ASSIGN 0 MOD 4;
+    WRITE a;
+
+    a ASSIGN 4 MOD 5;
+    WRITE a;
+
+    a ASSIGN 111 MOD 111;
+    WRITE a;
+
+    b ASSIGN 0;
+    a ASSIGN 0 MOD b;
+    WRITE a;
+
+    a ASSIGN 1 MOD b;
+    WRITE a;
+
+    a ASSIGN b MOD 4;
+    WRITE a;
+
+    b ASSIGN 4;
+    a ASSIGN b MOD 5;
+    WRITE a;
+
+    b ASSIGN 222;
+    a ASSIGN 222 MOD b;
+    WRITE a;
+
+    a ASSIGN 100;
+    b ASSIGN 200;
+    c ASSIGN 300;
+    tab[a] ASSIGN 0;
+    tab[b] ASSIGN 0;
+
+    tab[c] ASSIGN tab[a] MOD tab[b];
+    WRITE tab[c];
+
+    tab[a] ASSIGN 10;
+    tab[c] ASSIGN tab[a] MOD tab[b];
+    WRITE tab[c];
+
+    tab[c] ASSIGN tab[b] MOD tab[a];
+    WRITE tab[c];
+
+    tab[b] ASSIGN 15;
+    tab[c] ASSIGN tab[a] MOD tab[b];
+    WRITE tab[c];
+
+    tab[b] ASSIGN 10;
+    tab[c] ASSIGN tab[a] MOD tab[b];
+    WRITE tab[c];
+
+    a ASSIGN 10;
+    b ASSIGN 2;
+    c ASSIGN a MOD b;
+    WRITE c;
+
+    a ASSIGN 10;
+    b ASSIGN 3;
+    c ASSIGN a MOD b;
+    WRITE c;
+
+    a ASSIGN 111;
+    b ASSIGN 17;
+    c ASSIGN a MOD 17;
+    WRITE c;
+
+    c ASSIGN 12345;
+    b ASSIGN 4321;
+    c ASSIGN c MOD b;
+    WRITE c;
+
+    offset ASSIGN 100;
+    i ASSIGN 0 PLUS offset;
+    j ASSIGN 100 PLUS offset;
+
+    t[i] ASSIGN 99;
+    t[j] ASSIGN 3;
+    t[i] ASSIGN t[i] MOD t[j];
+    WRITE t[i];
+
+    t[i] ASSIGN 12345678;
+    t[j] ASSIGN 91;
+    t[i] ASSIGN t[i] MOD t[j];
+    WRITE t[i];
+
+    t[i] ASSIGN 16;
+    t[j] ASSIGN 15;
+    t[i] ASSIGN t[i] MOD t[j];
+    WRITE t[i];
+END

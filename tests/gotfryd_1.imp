@@ -1,0 +1,30 @@
+VAR
+	a, b, c, d, j, t
+BEGIN
+	a ASSIGN 17822;
+	c ASSIGN 55;
+	d ASSIGN 2;
+	j ASSIGN 1;
+
+	READ b;
+	b ASSIGN b PLUS d;
+	IF b GE a THEN
+		t ASSIGN b;
+		b ASSIGN a;
+		a ASSIGN t;
+	ELSE
+		IF b EQ a THEN
+			b ASSIGN b MINUS j;
+		ENDIF
+	ENDIF
+
+	FOR i FROM 1000 DOWNTO 1 DO
+		t ASSIGN b DIV a;
+		c ASSIGN c PLUS t;
+		c ASSIGN j TIMES c;
+		b ASSIGN d PLUS b;
+		a ASSIGN d PLUS a;
+	ENDFOR
+	WRITE c;
+
+END

@@ -1,0 +1,60 @@
+VAR
+    a, b, t[10:10000], c
+BEGIN
+    a ASSIGN 100 MINUS 0;
+    WRITE a;
+
+    a ASSIGN 10 MINUS 10;
+    WRITE a;
+
+    a ASSIGN 10 MINUS 11;
+    WRITE a;
+
+    a ASSIGN 15 MINUS 10;
+    WRITE a;
+
+    b ASSIGN 20 MINUS a;
+    WRITE b;
+
+    c ASSIGN a MINUS b;
+    WRITE c;
+
+    c ASSIGN b MINUS a;
+    WRITE c;
+
+    a ASSIGN 1000;
+    a ASSIGN a MINUS c;
+    WRITE a;
+
+    b ASSIGN b MINUS b;
+    WRITE b;
+
+    WRITE 0;
+
+    t[10] ASSIGN 100 MINUS 50;
+    WRITE t[10];
+
+    t[11] ASSIGN t[10] MINUS 10;
+    WRITE t[11];
+
+    t[12] ASSIGN t[10] MINUS t[11];
+    WRITE t[12];
+
+    a ASSIGN 13;
+    t[a] ASSIGN t[11] MINUS t[12];
+    WRITE t[a];
+
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[b] MINUS t[12];
+    WRITE t[a];
+
+    c ASSIGN b;
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[c] MINUS t[b];
+    WRITE t[a];
+
+    t[c] ASSIGN t[c] MINUS t[c];
+    WRITE t[c];
+END

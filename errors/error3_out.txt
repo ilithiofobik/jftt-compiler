@@ -1,0 +1,1 @@
+Błąd w linii 6: użycie niezainicjowanej zmiennej a

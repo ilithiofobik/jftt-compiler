@@ -1,0 +1,1 @@
+Błąd w linii 3: niewłaściwy zakres tablicy b

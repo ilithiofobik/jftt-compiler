@@ -1,0 +1,59 @@
+VAR
+    t[10:1000000], a, b,c
+BEGIN
+    a ASSIGN 5 TIMES 10;
+    WRITE a;
+
+    a ASSIGN 10 TIMES 0;
+    WRITE a;
+
+    a ASSIGN 0 TIMES 10;
+    WRITE a;
+
+    a ASSIGN 0 TIMES 0;
+    WRITE a;
+
+    a ASSIGN 10 TIMES 15;
+    WRITE a;
+
+    b ASSIGN a TIMES 10;
+    WRITE b;
+
+    c ASSIGN a TIMES b;
+    WRITE c;
+
+    a ASSIGN a TIMES c;
+    WRITE a;
+
+    b ASSIGN b TIMES b;
+    WRITE b;
+
+    WRITE 0;
+
+    t[10] ASSIGN 2 TIMES 1;
+    WRITE t[10];
+
+    t[11] ASSIGN 3 TIMES t[10];
+    WRITE t[11];
+
+    t[12] ASSIGN t[11] TIMES t[10];
+    WRITE t[12];
+
+    a ASSIGN 13;
+    t[a] ASSIGN t[12] TIMES t[11];
+    WRITE t[a];
+
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[b] TIMES t[12];
+    WRITE t[a];
+
+    c ASSIGN b;
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[b] TIMES t[c];
+    WRITE t[a];
+
+    t[c] ASSIGN t[c] TIMES t[c];
+    WRITE t[c];
+END

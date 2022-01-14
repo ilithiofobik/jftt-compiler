@@ -1,6 +1,6 @@
 from lexer import LangLexer
 from parser import LangParser
-from sys import argv
+from sys import argv, stderr
 
 if __name__ == '__main__':
     lexer = LangLexer()
@@ -14,6 +14,7 @@ if __name__ == '__main__':
             #print('type=%r, value=%r' % (tok.type, tok.value))
 
         parser.optimize_registers(lexer.tokenize(text))
+        
         parsed = parser.parse(lexer.tokenize(text))
         #print(parser.var)
         #print(parser.arr)
@@ -24,5 +25,5 @@ if __name__ == '__main__':
             fw.write(parsed)
 
     except Exception as e:
-        print(e)
+        print(e, file=stderr)
         exit(1)

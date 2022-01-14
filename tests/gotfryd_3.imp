@@ -1,0 +1,21 @@
+VAR
+	b, c, j, t
+BEGIN
+	j ASSIGN 1111111 MINUS 1111110; ( j EQ 1 )
+	READ b;
+	READ c;
+	IF b GE 50 THEN
+		b ASSIGN b MOD 50;
+	ENDIF
+	t ASSIGN b PLUS 1000;
+	t ASSIGN t MINUS 1;
+	WRITE t;
+	FOR i FROM b TO t DO
+		t ASSIGN i DIV j;
+		c ASSIGN c PLUS t;
+		t ASSIGN i MOD i;
+		c ASSIGN c PLUS t;
+	ENDFOR
+	WRITE t;
+	WRITE c;
+END

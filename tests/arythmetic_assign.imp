@@ -1,0 +1,43 @@
+VAR
+    tab[111:222], a, t[99:999], c
+BEGIN
+
+    a ASSIGN 200;
+    tab[a] ASSIGN 1;
+    c ASSIGN 99;
+    tab[111] ASSIGN 11;
+    tab[112] ASSIGN 12;
+    tab[220] ASSIGN 22;
+    tab[221] ASSIGN 31;
+    tab[222] ASSIGN 2;
+    t[c] ASSIGN 666;
+
+    WRITE a;
+    WRITE c;
+    WRITE tab[111];
+    WRITE tab[112];
+    WRITE tab[200];
+    WRITE tab[220];
+    WRITE tab[221];
+    WRITE tab[222];
+    WRITE t[99];
+
+    WRITE 0;
+    a ASSIGN tab[111];
+    WRITE a;
+    a ASSIGN t[c];
+    WRITE a;
+    a ASSIGN c;
+    WRITE a;
+    a ASSIGN t[a];
+    WRITE a;
+    a ASSIGN 200;
+    t[c] ASSIGN 9999;
+    WRITE t[c];
+    tab[a] ASSIGN t[c];
+    WRITE tab[a];
+    t[a] ASSIGN 4444;
+    WRITE t[a];
+    tab[a] ASSIGN t[a];
+    WRITE tab[a];
+END

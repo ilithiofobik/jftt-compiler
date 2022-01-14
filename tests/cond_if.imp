@@ -1,0 +1,101 @@
+VAR
+    a, b, c, d
+BEGIN
+
+    a ASSIGN 0;
+    IF a EQ 0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    IF a NEQ 0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    IF a LE 0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    IF a GE 1 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    IF a GEQ 0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    IF a LEQ 10 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    WRITE 111;
+
+    a ASSIGN 0;
+    IF a EQ 0 THEN
+        WRITE 1;
+    ENDIF
+
+    IF a NEQ 0 THEN
+        WRITE 2;
+    ENDIF
+
+    IF a LE 0 THEN
+        WRITE 3;
+    ENDIF
+
+    IF a GE 1 THEN
+        WRITE 4;
+    ENDIF
+
+    IF a GEQ 0 THEN
+        WRITE 5;
+    ENDIF
+
+    IF a LEQ 10 THEN
+        WRITE 6;
+    ENDIF
+
+    WRITE 222;
+    a ASSIGN 10;
+    b ASSIGN 5;
+    c ASSIGN 1;
+    d ASSIGN 12;
+
+    IF a LEQ 10 THEN
+        WRITE 1;
+        IF b NEQ 5 THEN
+            WRITE 3;
+        ELSE
+            WRITE 4;
+            IF c GE 0 THEN
+                WRITE 5;
+                IF d EQ 13 THEN
+                    WRITE 6;
+                ELSE
+                    WRITE 7;
+                    IF a LE 11 THEN
+                        WRITE 8;
+                    ENDIF
+                    IF d GEQ 100 THEN
+                        WRITE 9;
+                    ELSE
+                        WRITE 10;
+                    ENDIF
+                ENDIF
+            ENDIF
+        ENDIF
+    ELSE
+        WRITE 2;
+    ENDIF
+END

@@ -1,0 +1,44 @@
+VAR
+    a, b, t[10:10000], c
+BEGIN
+    a ASSIGN 10 PLUS 15;
+    WRITE a;
+
+    b ASSIGN a PLUS 10;
+    WRITE b;
+
+    c ASSIGN a PLUS b;
+    WRITE c;
+
+    a ASSIGN a PLUS c;
+    WRITE a;
+
+    b ASSIGN b PLUS b;
+    WRITE b;
+
+    WRITE 0;
+
+    t[10] ASSIGN 0 PLUS 1;
+    WRITE t[10];
+
+    t[11] ASSIGN 0 PLUS t[10];
+    WRITE t[11];
+
+    t[12] ASSIGN t[11] PLUS t[10];
+    WRITE t[12];
+
+    a ASSIGN 13;
+    t[a] ASSIGN t[12] PLUS t[11];
+    WRITE t[a];
+
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[b] PLUS t[12];
+    WRITE t[a];
+
+    c ASSIGN b;
+    b ASSIGN a;
+    a ASSIGN a PLUS 1;
+    t[a] ASSIGN t[b] PLUS t[c];
+    WRITE t[a];
+END
