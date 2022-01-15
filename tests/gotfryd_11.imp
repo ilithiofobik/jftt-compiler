@@ -1,0 +1,20 @@
+VAR
+	fact, r, n, k
+BEGIN
+	READ n;
+	fact ASSIGN 1;
+    k ASSIGN 1;
+    REPEAT
+        r ASSIGN k MOD 2;
+        IF r NEQ 0 THEN
+		    fact ASSIGN fact TIMES k;
+        ELSE
+            fact ASSIGN k TIMES fact;
+        ENDIF
+        k ASSIGN k PLUS 1;
+	UNTIL k GE n;
+
+	WRITE fact;
+
+	( Liczy n! )
+END

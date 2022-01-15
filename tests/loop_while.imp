@@ -1,0 +1,93 @@
+VAR
+    a, b, c
+BEGIN
+    a ASSIGN 10;
+    WHILE a EQ 11 DO
+        WRITE a;
+    ENDWHILE
+
+    WHILE a NEQ 10 DO
+        WRITE a;
+    ENDWHILE
+
+    WHILE a GE 10 DO
+        WRITE a;
+    ENDWHILE
+
+    WHILE a LE 10 DO
+        WRITE a;
+    ENDWHILE
+
+    WHILE a GEQ 11 DO
+        WRITE a;
+    ENDWHILE
+
+    WHILE a LEQ 9 DO
+        WRITE a;
+    ENDWHILE
+
+    WRITE 111;
+    c ASSIGN 0;
+    b ASSIGN c DIV a;
+    WHILE b EQ 0 DO
+        c ASSIGN c PLUS 1;
+        b ASSIGN c DIV a;
+        WRITE b;
+        WRITE c;
+    ENDWHILE
+
+    WRITE 222;
+    a ASSIGN 0;
+    WHILE a NEQ 10 DO
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    ENDWHILE
+
+    WRITE 333;
+    a ASSIGN 10;
+    WHILE a GE 1 DO
+        WRITE a;
+        a ASSIGN a MINUS 1;
+    ENDWHILE
+
+    WRITE 444;
+    a ASSIGN 1;
+    WHILE a LE 10 DO
+        WRITE a;
+        a ASSIGN a TIMES 2;
+    ENDWHILE
+
+    WRITE 555;
+    a ASSIGN 10;
+    WHILE a GEQ 1 DO
+        WRITE a;
+        a ASSIGN a DIV 2;
+    ENDWHILE
+
+    WRITE 666;
+    a ASSIGN 1;
+    WHILE a LEQ 10 DO
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    ENDWHILE
+
+    WRITE 777;
+
+    a ASSIGN 1;
+    WHILE a LE 10 DO
+        b ASSIGN a TIMES 2;
+        WHILE b LEQ 32 DO
+            c ASSIGN 5;
+            WHILE c NEQ 0 DO
+                WRITE c;
+                c ASSIGN c MINUS 1;
+            ENDWHILE
+            WRITE b;
+            b ASSIGN b TIMES 2;
+        ENDWHILE
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    ENDWHILE
+
+    WRITE 888;
+END

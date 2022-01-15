@@ -1,0 +1,45 @@
+VAR
+	n, m, j, z, ta[0:4], tb[0:4], tc[0:24]
+BEGIN
+	n ASSIGN 25 MINUS 1;
+	m ASSIGN 5 MINUS 1;
+	z ASSIGN 0;
+
+	FOR i FROM z TO m DO
+		j ASSIGN i PLUS 1;
+		ta[i] ASSIGN 9 TIMES j;
+		tb[i] ASSIGN 6 TIMES j;
+		tb[i] ASSIGN tb[i] DIV 3;
+		ta[i] ASSIGN j PLUS ta[i];
+     ENDFOR
+
+     FOR i FROM z TO m DO
+		WRITE ta[i];
+	ENDFOR
+
+	WRITE 111111111;
+
+	FOR i FROM z TO m DO
+		WRITE tb[i];
+	ENDFOR
+
+	WRITE 111111111;
+
+	FOR i FROM z TO m DO
+		FOR k FROM m DOWNTO z DO
+			FOR l FROM z TO n DO
+				j ASSIGN 5 TIMES i;
+                j ASSIGN j PLUS 4;
+                j ASSIGN j MINUS k;
+				IF j EQ l THEN
+					tc[l] ASSIGN ta[i] TIMES tb[k];
+				ENDIF
+			ENDFOR
+		ENDFOR
+	ENDFOR
+
+	FOR i FROM z TO n DO
+		WRITE tc[i];
+	ENDFOR
+
+END

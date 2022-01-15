@@ -1,0 +1,39 @@
+VAR
+	tab[1:22], x, q, w, j, k, n, m
+BEGIN
+	n ASSIGN 23;
+	m ASSIGN n MINUS 1;
+	q ASSIGN 5;
+	w ASSIGN 1;
+	(generowanie nieposortowanej tablicy)
+	FOR i FROM 1 TO m DO
+		w ASSIGN w TIMES q;
+		w ASSIGN w MOD n;
+		tab[i] ASSIGN w;
+	ENDFOR
+	(wypisywanie nieposortowanej tablicy)
+	FOR i FROM 1 TO m DO
+		WRITE tab[i];
+	ENDFOR
+	WRITE 1234567890;
+	(sortowanie)
+	FOR i FROM 2 TO m DO
+		x ASSIGN tab[i];
+		j ASSIGN i;
+		WHILE j GE 1 DO
+			k ASSIGN j MINUS 1;
+			IF tab[k] GE x THEN
+				tab[j] ASSIGN tab[k];
+				j ASSIGN j MINUS 1;
+			ELSE
+				k ASSIGN j;
+				j ASSIGN 0;
+			ENDIF
+		ENDWHILE
+		tab[k] ASSIGN x;
+	ENDFOR
+	(wypisywanie posortowanej tablicy)
+	FOR i FROM 1 TO m DO
+		WRITE tab[i];
+	ENDFOR
+END

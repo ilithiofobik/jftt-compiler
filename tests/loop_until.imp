@@ -1,0 +1,92 @@
+VAR
+    a, b, c
+BEGIN
+    a ASSIGN 10;
+    REPEAT
+        WRITE a;
+    UNTIL a NEQ 11;
+
+    REPEAT
+        WRITE a;
+    UNTIL a EQ 10;
+
+    REPEAT
+        WRITE a;
+    UNTIL a LEQ 10;
+
+    REPEAT
+        WRITE a;
+    UNTIL a GEQ 10;
+
+    REPEAT
+        WRITE a;
+    UNTIL a LE 11;
+
+    REPEAT
+        WRITE a;
+    UNTIL a GE 9;
+
+    WRITE 111;
+    c ASSIGN 0;
+    b ASSIGN c DIV a;
+    REPEAT
+        c ASSIGN c PLUS 1;
+        b ASSIGN c DIV a;
+        WRITE b;
+        WRITE c;
+    UNTIL b NEQ 0;
+
+    WRITE 222;
+    a ASSIGN 0;
+    REPEAT
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    UNTIL a EQ 10;
+
+    WRITE 333;
+    a ASSIGN 10;
+    REPEAT
+        WRITE a;
+        a ASSIGN a MINUS 1;
+    UNTIL a LEQ 1;
+
+    WRITE 444;
+    a ASSIGN 1;
+    REPEAT
+        WRITE a;
+        a ASSIGN a TIMES 2;
+    UNTIL a GEQ 10;
+
+    WRITE 555;
+    a ASSIGN 10;
+    REPEAT
+        WRITE a;
+        a ASSIGN a DIV 2;
+    UNTIL a LE 1;
+
+    WRITE 666;
+    a ASSIGN 1;
+    REPEAT
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    UNTIL a GE 10;
+
+    WRITE 777;
+    a ASSIGN 1;
+    REPEAT
+        b ASSIGN a TIMES 2;
+        REPEAT
+            c ASSIGN 5;
+            REPEAT
+                WRITE c;
+                c ASSIGN c MINUS 1;
+            UNTIL c EQ 0;
+            WRITE b;
+            b ASSIGN b TIMES 2;
+        UNTIL b GE 32;
+        WRITE a;
+        a ASSIGN a PLUS 1;
+    UNTIL a GEQ 10;
+
+    WRITE 888;
+END

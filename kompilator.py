@@ -10,15 +10,8 @@ if __name__ == '__main__':
         fr = open(argv[1], 'r')
         text = fr.read()
 
-        # for tok in lexer.tokenize(text):
-            #print('type=%r, value=%r' % (tok.type, tok.value))
-
         parser.optimize_registers(lexer.tokenize(text))
-        
         parsed = parser.parse(lexer.tokenize(text))
-        #print(parser.var)
-        #print(parser.arr)
-        #print(parser.inits)
 
         if parsed:
             fw = open(argv[2], "w")

@@ -1,0 +1,15 @@
+VAR
+    s[0:101], n, j
+BEGIN
+    READ n;
+    s[n] ASSIGN 1;
+    j ASSIGN n;
+    n ASSIGN n MINUS 1;
+
+    FOR i FROM n DOWNTO 0 DO
+        s[i] ASSIGN s[j] TIMES j;
+        j ASSIGN j MINUS 1;
+    ENDFOR
+
+    WRITE s[0];
+END

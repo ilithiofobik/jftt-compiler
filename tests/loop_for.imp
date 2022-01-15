@@ -1,0 +1,75 @@
+VAR
+    a, b, tab[0:10]
+BEGIN
+
+    FOR i FROM 1111 TO 1111 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 11 TO 10 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 0 TO 5 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 1 TO 5 DO
+        WRITE i;
+    ENDFOR
+
+    a ASSIGN 0;
+    b ASSIGN 1;
+
+    tab[a] ASSIGN 1;
+    tab[b] ASSIGN 4;
+    FOR i FROM tab[a] TO tab[b] DO
+        FOR ii FROM i TO tab[b] DO
+            WRITE i;
+            WRITE ii;
+        ENDFOR
+    ENDFOR
+
+    FOR i FROM 1111 DOWNTO 1111 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 10 DOWNTO 11 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 5 DOWNTO 0 DO
+        WRITE i;
+    ENDFOR
+
+    FOR i FROM 5 DOWNTO 1 DO
+        WRITE i;
+    ENDFOR
+
+    a ASSIGN 0;
+    b ASSIGN 1;
+
+    tab[a] ASSIGN 1;
+    tab[b] ASSIGN 4;
+    FOR i FROM tab[b] DOWNTO tab[a] DO
+        FOR ii FROM tab[b] DOWNTO i DO
+            WRITE i;
+            WRITE ii;
+        ENDFOR
+    ENDFOR
+
+    WRITE 666;
+    a ASSIGN 0;
+    FOR i FROM 4 DOWNTO tab[a] DO
+        FOR ii FROM i TO tab[b] DO
+            FOR iii FROM tab[b] DOWNTO ii DO
+                a ASSIGN a PLUS 1;
+                WRITE i;
+                WRITE ii;
+                WRITE iii;
+            ENDFOR
+        ENDFOR
+    ENDFOR
+
+    WRITE a;
+END

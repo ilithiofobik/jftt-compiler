@@ -1,0 +1,35 @@
+VAR
+	a, b, i, j, acc, accb
+BEGIN
+	READ a;
+	READ b;
+	j ASSIGN 512;
+ 	i ASSIGN 1;
+	acc ASSIGN 0;
+	accb ASSIGN 0;
+
+	WRITE j;
+
+	acc ASSIGN a;  ( acc EQ a )
+	accb ASSIGN b; ( accb EQ b )
+
+	WHILE i LEQ 1000 DO 			( if i MOD 2 EQEQ 0 then acc PLUSEQ iDIV2 )
+		j ASSIGN i MOD 2;
+		IF 1 NEQ j THEN
+			j ASSIGN i DIV 2;
+			acc ASSIGN acc PLUS j;
+		ENDIF
+		j ASSIGN 0;
+		WHILE 10 GE j DO
+			accb ASSIGN 2 PLUS accb;
+			accb ASSIGN accb MINUS 1;
+			j ASSIGN j PLUS 1;
+		ENDWHILE				( accb PLUSEQ 10 )
+		i ASSIGN i PLUS 1;
+	ENDWHILE					( acc PLUSEQ 125250; accb ASSIGN 10000 )
+
+	WRITE a;
+	WRITE b;
+	WRITE acc;  ( acc EQ a PLUS 125250 )
+	WRITE accb; ( accb EQ b PLUS 10000 )
+END

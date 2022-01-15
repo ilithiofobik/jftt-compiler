@@ -1,0 +1,20 @@
+VAR
+  tab[0:1325476980], a, b, c, d, n
+BEGIN
+  READ a;
+  tab[a] ASSIGN 9;
+
+  n ASSIGN 1325476980;
+  tab[n] ASSIGN tab[a];
+
+  b ASSIGN  111111111;
+  b ASSIGN b TIMES tab[a];
+
+  c ASSIGN 90909090;
+  READ d;
+
+  tab[a] ASSIGN b MINUS c;
+  tab[n] ASSIGN tab[a] DIV d;
+  WRITE tab[a];
+  WRITE tab[n];
+END

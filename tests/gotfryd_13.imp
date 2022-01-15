@@ -1,0 +1,21 @@
+VAR
+	a, b, c
+BEGIN
+	a ASSIGN 10000;
+	b ASSIGN 0;
+	c ASSIGN 100;
+	FOR i FROM a TO b DO
+		a ASSIGN a PLUS c;
+	ENDFOR
+	WRITE a;
+
+	FOR i FROM b DOWNTO a DO
+		a ASSIGN a PLUS c;
+	ENDFOR
+	WRITE a;
+
+	WHILE a LE b DO
+		a ASSIGN a PLUS c;
+	ENDWHILE
+	WRITE a;
+END
