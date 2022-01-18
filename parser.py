@@ -84,11 +84,11 @@ class LangParser(Parser):
                         "LOAD b\n" +\
                         val2 * f"{inc_dec} a\n" +\
                         "STORE b\n"
-            
+
             if category == "var_reg":
                 reg = self.regs[id]
                 return code2 + f"ADD {reg}\n" + f"SWAP {reg}\n"
-            
+
             return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "ADD b\n" + "STORE d\n"
 
         if category1 == "num" and category2 == "num":
@@ -108,6 +108,98 @@ class LangParser(Parser):
 
         if val1 == val2:
             code_val = code1 + "RESET d\n" + "INC d\n" + "SHIFT d\n"
+
+        if category == "var":
+            self.inits.add(id)
+
+        if category == "var_reg":
+            self.inits.add(id)
+            return code_val + f"SWAP {self.regs[id]}\n"
+
+        return code_val + "SWAP d\n" + code_id + "SWAP d\n" + "STORE d\n"
+
+    def assign_subtraction(self, identifier, value1, value2):
+        category, id, code_id, _ = identifier
+        category1, code1, val1 = value1
+        category2, code2, val2 = value2
+
+        code_val = code2 + "SWAP d\n" + code1 + "SUB d\n"
+
+        if id == val1 and val1 == val2:
+            if category == "var_reg":
+                reg = self.regs[id]
+                return f"RESET {reg}\n"
+            else:
+                return code_id +\
+                    "SWAP b\n" +\
+                    "RESET a\n" +\
+                    "STORE b\n"
+
+        if id != val1 and id == val2:
+            if category2 == "num" and val2 <= 10 and val2 >= -10:
+                if val1 == 0:
+                    return ""
+
+                inc_dec = "DEC"
+                if val2 < 0:
+                    val2 = -val2
+                    inc_dec = "INC"
+
+                if category == "var_reg":
+                    reg = self.regs[id]
+                    return val2 * f"{inc_dec} {reg}\n"
+
+                else:
+                    return code_id +\
+                        "SWAP b\n" +\
+                        "LOAD b\n" +\
+                        val2 * f"{inc_dec} a\n" +\
+                        "STORE b\n"
+
+            if category == "var_reg":
+                reg = self.regs[id]
+                return code2 + f"SWAP d\n" + f"SWAP {reg}\n" + "SUB d\n" + f"SWAP {reg}\n"
+
+            return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "SUB b\n" + "STORE d\n"
+
+        if id == val1 and id != val2:
+            if category2 == "num" and val2 <= 10 and val2 >= -10:
+                if val2 == 0:
+                    return ""
+
+                inc_dec = "DEC"
+                if val2 < 0:
+                    val2 = -val2
+                    inc_dec = "INC"
+
+                if category == "var_reg":
+                    reg = self.regs[id]
+                    return val2 * f"{inc_dec} {reg}\n"
+
+                else:
+                    return code_id +\
+                        "SWAP b\n" +\
+                        "LOAD b\n" +\
+                        val2 * f"{inc_dec} a\n" +\
+                        "STORE b\n"
+
+            if category == "var_reg":
+                reg = self.regs[id]
+                return code2 + f"SWAP d\n" + f"SWAP {reg}\n" + "SUB d\n" + f"SWAP {reg}\n"
+
+            return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "SUB b\n" + "STORE d\n"
+
+        if category1 == "num" and category2 == "num":
+            code_val = self.generateNumber(val1 - val2)
+
+        if category2 == "num" and val2 >= 0 and val2 <= 7:
+            code_val = code1 + val2 * "DEC a\n"
+
+        if category2 == "num" and val2 < 0 and val2 >= -7:
+            code_val = code1 + -val2 * "INC a\n"
+
+        if val1 == val2:
+            code_val = "RESET a\n"
 
         if category == "var":
             self.inits.add(id)
@@ -169,7 +261,7 @@ class LangParser(Parser):
             if val1 >= big_magic_number and val1 & (val1 - 1) == 0:
                 log_num = 0
                 if oper == "SUB b\n":
-                    code2 = code2 + "SWAP b\n" + "RESET a\n" + "SUB b\n" 
+                    code2 = code2 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
 
                 while val1 >= 2:
                     log_num += 1
@@ -194,6 +286,9 @@ class LangParser(Parser):
                     lines = oper + lines
                     val1 = val1 - 1
             return code2 + 'SWAP b\n' + "RESET a\n" + "RESET d\n" + "INC d\n" + lines
+
+        if val1 == val2:
+            code1 = "RESET a\n" + "ADD d\n"
 
         lines = code2 +\
             "SWAP d\n" +\
@@ -498,7 +593,7 @@ class LangParser(Parser):
         return lines
     # OPTIMIZATION FUNCTIONS
 
-    def optimize_registers(self, tokens,text):
+    def optimize_registers(self, tokens, text):
         ranking = dict()
         e_available = True
         if "TIMES" in text or "DIV" in text or "MOD" in text:
@@ -674,7 +769,7 @@ class LangParser(Parser):
         if oper == "PLUS":
             return self.assign_addition(p[0], first_val, second_val)
         if oper == "MINUS":
-            code2 = self.subtraction(first_val, second_val)
+            return self.assign_subtraction(p[0], first_val, second_val)
         if oper == "TIMES":
             code2 = self.multiplication(first_val, second_val)
         if oper == "DIV":
