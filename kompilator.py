@@ -10,7 +10,7 @@ if __name__ == '__main__':
         fr = open(argv[1], 'r')
         text = fr.read()
 
-        parser.optimize_registers(lexer.tokenize(text))
+        parser.optimize_registers(lexer.tokenize(text), text)
         parsed = parser.parse(lexer.tokenize(text))
 
         if parsed:

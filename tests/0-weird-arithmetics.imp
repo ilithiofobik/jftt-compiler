@@ -1,0 +1,17 @@
+VAR
+	a, b, c, d
+BEGIN
+    a ASSIGN 7;
+    a ASSIGN a PLUS a;
+    WRITE a;
+    b ASSIGN 0;
+    b ASSIGN b PLUS b;
+    WRITE b;
+    c ASSIGN -3;
+    c ASSIGN c PLUS c;
+    WRITE c;
+    d ASSIGN 7;
+    d ASSIGN d PLUS d;
+    WRITE d;
+END
+

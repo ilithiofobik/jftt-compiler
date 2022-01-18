@@ -20,6 +20,11 @@ class LangParser(Parser):
             msg = f"Błąd w linii {lineno}: użycie niezainicjowanej zmiennej {id}"
             raise Exception(msg)
 
+    def checkIter(self, id, lineno):
+        if id in self.iter:
+            msg = f"Błąd w linii {lineno}: zabroniona modyfikacja iteratora {id}"
+            raise Exception(msg)
+
     def checkArr(self, tab, lineno):
         if tab in self.var or tab in self.iter:
             msg = f"Błąd w linii {lineno}: niewłaściwe użycie zmiennej {tab}"
@@ -31,29 +36,87 @@ class LangParser(Parser):
 
     # ARITHMETICS
 
-    def addition(self, value1, value2):
+    def assign_addition(self, identifier, value1, value2):
+        category, id, code_id, lineno = identifier
         category1, code1, val1 = value1
         category2, code2, val2 = value2
 
+        code_val = code2 + "SWAP d\n" + code1 + "ADD d\n"
+
+        if id == val1 and val1 == val2:
+            if category == "var_reg":
+                reg = self.regs[id]
+                return f"SWAP {reg}\n" +\
+                    "RESET b\n" +\
+                    "INC b\n" +\
+                    "SHIFT b\n" +\
+                    f"SWAP {reg}\n"
+            else:
+                return code_id +\
+                    "SWAP b\n" +\
+                    "LOAD b\n" +\
+                    "RESET c\n" +\
+                    "INC c\n" +\
+                    "SHIFT c\n" +\
+                    "STORE b\n"
+
+        if id == val1 or id == val2:
+            if id == val2:
+                category1, code1, val1 = value2
+                category2, code2, val2 = value1
+
+            if category2 == "num" and val2 <= 10 and val2 >= -10:
+                if val2 == 0:
+                    return ""
+
+                inc_dec = "INC"
+                if val2 < 0:
+                    val2 = -val2
+                    inc_dec = "DEC"
+
+                if category == "var_reg":
+                    reg = self.regs[id]
+                    return val2 * f"{inc_dec} {reg}\n"
+
+                else:
+                    return code_id +\
+                        "SWAP b\n" +\
+                        "LOAD b\n" +\
+                        val2 * f"{inc_dec} a\n" +\
+                        "STORE b\n"
+            
+            if category == "var_reg":
+                reg = self.regs[id]
+                return code2 + f"ADD {reg}\n" + f"SWAP {reg}\n"
+            
+            return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "ADD b\n" + "STORE d\n"
+
         if category1 == "num" and category2 == "num":
-            return self.generateNumber(val1 + val2)
+            code_val = self.generateNumber(val1 + val2)
 
         if category1 == "num" and val1 >= 0 and val1 <= 7:
-            return code2 + val1 * "INC a\n"
+            code_val = code2 + val1 * "INC a\n"
 
         if category1 == "num" and val1 < 0 and val1 >= -7:
-            return code2 + -val1 * "DEC a\n"
+            code_val = code2 + -val1 * "DEC a\n"
 
         if category2 == "num" and val2 >= 0 and val2 <= 7:
-            return code1 + val2 * "INC a\n"
+            code_val = code1 + val2 * "INC a\n"
 
         if category2 == "num" and val2 < 0 and val2 >= -7:
-            return code1 + -val2 * "DEC a\n"
+            code_val = code1 + -val2 * "DEC a\n"
 
         if val1 == val2:
-            return code1 + "RESET d\n" + "INC d\n" + "SHIFT d\n"
+            code_val = code1 + "RESET d\n" + "INC d\n" + "SHIFT d\n"
 
-        return code2 + "SWAP d\n" + code1 + "ADD d\n"
+        if category == "var":
+            self.inits.add(id)
+
+        if category == "var_reg":
+            self.inits.add(id)
+            return code_val + f"SWAP {self.regs[id]}\n"
+
+        return code_val + "SWAP d\n" + code_id + "SWAP d\n" + "STORE d\n"
 
     def subtraction(self, value1, value2):
         category1, code1, val1 = value1
@@ -77,6 +140,8 @@ class LangParser(Parser):
         category1, code1, val1 = value1
         category2, code2, val2 = value2
 
+        big_magic_number = 256
+
         if category1 == "num" and category2 == "num":
             return self.generateNumber(val1 * val2)
 
@@ -99,6 +164,27 @@ class LangParser(Parser):
             if val1 < 0:
                 val1 = -val1
                 oper = "SUB b\n"
+
+             # 2^n in log(log(n)) time
+            if val1 >= big_magic_number and val1 & (val1 - 1) == 0:
+                log_num = 0
+                if oper == "SUB b\n":
+                    code2 = code2 + "SWAP b\n" + "RESET a\n" + "SUB b\n" 
+
+                while val1 >= 2:
+                    log_num += 1
+                    val1 = val1 // 2
+                lines = ""
+
+                while log_num > 0:
+                    if log_num % 2 == 0:
+                        log_num = log_num // 2
+                        lines = "SHIFT c\n" + lines
+                    else:
+                        log_num = log_num - 1
+                        lines = "INC a\n" + lines
+
+                return "RESET a\n" + "RESET c\n" + "INC c\n" + lines + "SWAP d\n" + code2 + "SHIFT d\n"
 
             while val1 > 0:
                 if val1 % 2 == 0:
@@ -412,12 +498,12 @@ class LangParser(Parser):
         return lines
     # OPTIMIZATION FUNCTIONS
 
-    def optimize_registers(self, tokens):
+    def optimize_registers(self, tokens,text):
         ranking = dict()
-        e_reserved = False
+        e_available = True
+        if "TIMES" in text or "DIV" in text or "MOD" in text:
+            e_available = False
         for token in tokens:
-            if token.type in ["TIMES", "DIV", "MOD"]:
-                e_reserved = True
             if token.type == "PIDENTIFIER" and next(tokens).type != "[":
                 if token.value not in ranking:
                     ranking[token.value] = 0
@@ -430,6 +516,8 @@ class LangParser(Parser):
             self.regs[sorted_ranking[1][0]] = "g"
         if len(sorted_ranking) >= 3:
             self.regs[sorted_ranking[2][0]] = "f"
+        if len(sorted_ranking) >= 4 and e_available:
+            self.regs[sorted_ranking[3][0]] = "e"
 
     # GENERATING NUMBERS
 
@@ -581,8 +669,10 @@ class LangParser(Parser):
         category, id, code1, lineno = p[0]
         first_val, oper, second_val = p[2]
 
+        self.checkIter(id, lineno)
+
         if oper == "PLUS":
-            code2 = self.addition(first_val, second_val)
+            return self.assign_addition(p[0], first_val, second_val)
         if oper == "MINUS":
             code2 = self.subtraction(first_val, second_val)
         if oper == "TIMES":
@@ -593,10 +683,6 @@ class LangParser(Parser):
             code2 = self.modulo(first_val, second_val)
         if oper is None:
             code2 = first_val[1]
-
-        if id in self.iter:
-            msg = f"Błąd w linii {lineno}: zabroniona modyfikacja iteratora {id}"
-            raise Exception(msg)
 
         if category == "var":
             self.inits.add(id)
@@ -692,7 +778,7 @@ class LangParser(Parser):
         id = p[0]
         id_to = p[0] + "TO"
 
-        if id in self.iter:
+        if id in self.iter or id in self.arr or id in self.var:
             msg = f"Błąd w linii {p.lineno}: druga deklaracja {id}"
             raise Exception(msg)
 
@@ -841,7 +927,13 @@ class LangParser(Parser):
 
     @_('WRITE value ";"')
     def command(self, p):
-        return p[1][1] + "PUT\n"
+        category, code, id = p[1]
+
+        if category == "var_reg":
+            reg = self.regs[id]
+            return f"SWAP {reg}\n" + "PUT\n" + f"SWAP {reg}\n"
+
+        return code + "PUT\n"
 
     # loads value to register a
     @_('value')
