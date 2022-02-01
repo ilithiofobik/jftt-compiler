@@ -136,31 +136,11 @@ class LangParser(Parser):
                     "STORE b\n"
 
         if id != val1 and id == val2:
-            if category1 == "num" and val1 <= 10 and val1 >= -10:
-                if val1 == 0:
-                    return ""
-
-                inc_dec = "DEC"
-                if val1 < 0:
-                    val1 = -val1
-                    inc_dec = "INC"
-
-                if category == "var_reg":
-                    reg = self.regs[id]
-                    return val1 * f"{inc_dec} {reg}\n"
-
-                else:
-                    return code_id +\
-                        "SWAP b\n" +\
-                        "LOAD b\n" +\
-                        val1 * f"{inc_dec} a\n" +\
-                        "STORE b\n"
-
             if category == "var_reg":
                 reg = self.regs[id]
                 return code1 + f"SUB {reg}\n" + f"SWAP {reg}\n"
 
-            return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "SUB b\n" + "STORE d\n"
+            return code_id + "SWAP d\n" + code1 + "SWAP b\n" + "LOAD d\n" + "SUB b\n" + "SWAP b\n" + "RESET a\n" + "SUB b\n" + "STORE d\n"
 
         if id == val1 and id != val2:
             if category2 == "num" and val2 <= 10 and val2 >= -10:
@@ -564,7 +544,7 @@ class LangParser(Parser):
             "JUMP 4\n" +\
             "SHIFT c\n" +\
             "INC b\n" +\
-            "JUMP -4\n" 
+            "JUMP -4\n"
 
         # setting divisor to divisor << (mst+1), and c (quotient) to 0
         pp_case += "SWAP e\n" +\
