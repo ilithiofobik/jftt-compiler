@@ -12,6 +12,9 @@ if __name__ == '__main__':
 
         parser.optimize_registers(lexer.tokenize(text), text)
         parsed = parser.parse(lexer.tokenize(text))
+        
+        if "READ" not in text and "WRITE" not in text:
+            parsed = ""
 
         if parsed:
             fw = open(argv[2], "w")

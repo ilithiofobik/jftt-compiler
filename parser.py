@@ -136,29 +136,29 @@ class LangParser(Parser):
                     "STORE b\n"
 
         if id != val1 and id == val2:
-            if category2 == "num" and val2 <= 10 and val2 >= -10:
+            if category1 == "num" and val1 <= 10 and val1 >= -10:
                 if val1 == 0:
                     return ""
 
                 inc_dec = "DEC"
-                if val2 < 0:
-                    val2 = -val2
+                if val1 < 0:
+                    val1 = -val1
                     inc_dec = "INC"
 
                 if category == "var_reg":
                     reg = self.regs[id]
-                    return val2 * f"{inc_dec} {reg}\n"
+                    return val1 * f"{inc_dec} {reg}\n"
 
                 else:
                     return code_id +\
                         "SWAP b\n" +\
                         "LOAD b\n" +\
-                        val2 * f"{inc_dec} a\n" +\
+                        val1 * f"{inc_dec} a\n" +\
                         "STORE b\n"
 
             if category == "var_reg":
                 reg = self.regs[id]
-                return code2 + f"SWAP d\n" + f"SWAP {reg}\n" + "SUB d\n" + f"SWAP {reg}\n"
+                return code1 + f"SUB {reg}\n" + f"SWAP {reg}\n"
 
             return code_id + "SWAP d\n" + code2 + "SWAP b\n" + "LOAD d\n" + "SUB b\n" + "STORE d\n"
 
@@ -337,35 +337,13 @@ class LangParser(Parser):
     def division(self, value1, value2):
         category1, code1, val1 = value1
         category2, code2, val2 = value2
+        big_magic_number = 256
 
         if category1 == "num" and category2 == "num":
             if val2 == 0:
                 return "RESET a\n"
             else:
                 return self.generateNumber(val1 // val2)
-
-        if category2 == "num":
-            if val2 == 0:
-                return "RESET a\n"
-
-            if val2 == 1:
-                return code1
-
-            if val2 == -1:
-                return code1 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
-
-        if category1 == "num":
-            if val1 == 0:
-                return "RESET a\n"
-
-        if val1 == val2:
-            return code1 +\
-                "JZERO 3\n" +\
-                "RESET a\n" +\
-                "INC a\n"
-
-        # loading values, dividend to d, divisor to e
-        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
 
         # calculating msb to register b
         pos_case = "RESET a\n" +\
@@ -424,6 +402,115 @@ class LangParser(Parser):
         pos_len = pos_case.count('\n')
         neg_len = neg_case.count('\n')
 
+        if category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+
+            if val2 == 1:
+                return code1
+
+            if val2 == -1:
+                return code1 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
+
+            if val2 > 1:
+                code2_len = code2.count("\n")
+
+                lines = code1 +\
+                    f"JZERO {2*code2_len + neg_len + pos_len + 10}\n" +\
+                    f"JPOS {code2_len + neg_len + 7}\n" +\
+                    "SWAP d\n" +\
+                    "RESET a\n" +\
+                    "SUB d\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    neg_case +\
+                    f"JUMP {3 + code2_len + pos_len}\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    pos_case
+
+                return lines
+
+            if val2 < -1:
+                code2 = self.generateNumber(-val2)
+                code2_len = code2.count("\n")
+
+                lines = code1 +\
+                    f"JZERO {2*code2_len + neg_len + pos_len + 10}\n" +\
+                    f"JPOS {code2_len + pos_len + 7}\n" +\
+                    "SWAP d\n" +\
+                    "RESET a\n" +\
+                    "SUB d\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    pos_case +\
+                    f"JUMP {3 + code2_len + neg_len}\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    neg_case
+
+                return lines
+
+        if category1 == "num":
+            if val1 == 0:
+                return "RESET a\n"
+
+            if val1 > 0:
+                code1_len = code1.count("\n")
+
+                lines = code2 +\
+                    f"JZERO {2*code1_len + neg_len + pos_len + 10}\n" +\
+                    f"JPOS {code1_len + neg_len + 7}\n" +\
+                    "SWAP e\n" +\
+                    "RESET a\n" +\
+                    "SUB e\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    neg_case +\
+                    f"JUMP {3 + code1_len + pos_len}\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    pos_case
+
+                return lines
+
+            if val1 < 0:
+                code1 = code1 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
+                code1_len = code1.count("\n")
+
+                lines = code2 +\
+                    f"JZERO {2*code1_len + neg_len + pos_len + 10}\n" +\
+                    f"JPOS {code1_len + pos_len + 7}\n" +\
+                    "SWAP e\n" +\
+                    "RESET a\n" +\
+                    "SUB e\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    pos_case +\
+                    f"JUMP {3 + code1_len + neg_len}\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    neg_case
+
+                return lines
+
+        if val1 == val2:
+            return code1 +\
+                "JZERO 3\n" +\
+                "RESET a\n" +\
+                "INC a\n"
+
+        # loading values, dividend to d, divisor to e
+        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
+
         # divisor in register a in the beginning
         non_zero_divisor = f"JPOS {12 + pos_len}\n" +\
             "SWAP e\n" +\
@@ -467,26 +554,6 @@ class LangParser(Parser):
             else:
                 return self.generateNumber(val1 % val2)
 
-        if category2 == "num":
-            if val2 == 0:
-                return "RESET a\n"
-
-            if val2 == 1:
-                return "RESET a\n"
-
-            if val2 == -1:
-                return "RESET a\n"
-
-        if category1 == "num":
-            if val1 == 0:
-                return "RESET a\n"
-
-        if val1 == val2:
-            return "RESET a\n"
-
-        # loading values, dividend to d, divisor to e
-        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
-
         # calculating msb to register b
         pp_case = "RESET a\n" +\
             "RESET b\n" +\
@@ -497,7 +564,8 @@ class LangParser(Parser):
             "JUMP 4\n" +\
             "SHIFT c\n" +\
             "INC b\n" +\
-            "JUMP -4\n"
+            "JUMP -4\n" 
+
         # setting divisor to divisor << (mst+1), and c (quotient) to 0
         pp_case += "SWAP e\n" +\
             "INC b\n" +\
@@ -552,6 +620,112 @@ class LangParser(Parser):
         pn_len = pn_case.count('\n')
         np_len = np_case.count('\n')
         nn_len = nn_case.count('\n')
+
+        if category2 == "num":
+            if val2 == 0:
+                return "RESET a\n"
+
+            if val2 == 1:
+                return "RESET a\n"
+
+            if val2 == -1:
+                return "RESET a\n"
+
+            if val2 > 1:
+                code2_len = code2.count("\n")
+
+                lines = code1 +\
+                    f"JZERO {2*code2_len + np_len + pp_len + 10}\n" +\
+                    f"JPOS {code2_len + np_len + 7}\n" +\
+                    "SWAP d\n" +\
+                    "RESET a\n" +\
+                    "SUB d\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    np_case +\
+                    f"JUMP {3 + code2_len + pp_len}\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    pp_case
+
+                return lines
+
+            if val2 < -1:
+                code2 = self.generateNumber(-val2)
+                code2_len = code2.count("\n")
+
+                lines = code1 +\
+                    f"JZERO {2*code2_len + nn_len + pn_len + 10}\n" +\
+                    f"JPOS {code2_len + nn_len + 7}\n" +\
+                    "SWAP d\n" +\
+                    "RESET a\n" +\
+                    "SUB d\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    nn_case +\
+                    f"JUMP {3 + code2_len + pn_len}\n" +\
+                    "SWAP d\n" +\
+                    code2 +\
+                    "SWAP e\n" +\
+                    pn_case
+
+                return lines
+
+        if category1 == "num":
+            if val1 == 0:
+                return "RESET a\n"
+
+            if val1 > 0:
+                code1_len = code1.count("\n")
+
+                lines = code2 +\
+                    f"JZERO {2*code1_len + pn_len + pp_len + 10}\n" +\
+                    f"JPOS {code1_len + pn_len + 7}\n" +\
+                    "SWAP e\n" +\
+                    "RESET a\n" +\
+                    "SUB e\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    pn_case +\
+                    f"JUMP {3 + code1_len + pp_len}\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    pp_case
+
+                return lines
+
+            if val1 < 0:
+                code1 = code1 + "SWAP b\n" + "RESET a\n" + "SUB b\n"
+                code1_len = code1.count("\n")
+
+                lines = code2 +\
+                    f"JZERO {2*code1_len + nn_len + np_len + 10}\n" +\
+                    f"JPOS {code1_len + nn_len + 7}\n" +\
+                    "SWAP e\n" +\
+                    "RESET a\n" +\
+                    "SUB e\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    nn_case +\
+                    f"JUMP {3 + code1_len + np_len}\n" +\
+                    "SWAP e\n" +\
+                    code1 +\
+                    "SWAP d\n" +\
+                    np_case
+
+                return lines
+
+        if val1 == val2:
+            return "RESET a\n"
+
+        # loading values, dividend to d, divisor to e
+        lines = code1 + "SWAP d\n" + code2 + "SWAP e\n"
 
         # divisor in register a in the beginning
         non_zero_divisor = f"JPOS {14 + nn_len + pn_len}\n" +\
@@ -790,47 +964,89 @@ class LangParser(Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, p):
-        cond_category, cond_code = p[1]
+        cond_category, cond_code, val = p[1]
         inner_code = p[3]
         inner_len = inner_code.count('\n')
         else_code = p[5]
         else_len = else_code.count('\n')
 
         if cond_category == "EQ":
+            if val:
+                if val == 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JZERO {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "NEQ":
+            if val:
+                if val != 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JZERO {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
         if cond_category == "LE":
+            if val:
+                if val < 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JNEG {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "GEQ":
+            if val:
+                if val >= 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JNEG {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
         if cond_category == "GE":
+            if val:
+                if val > 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JPOS {else_len + 2}\n" + else_code + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "LEQ":
+            if val:
+                if val <= 0:
+                    return inner_code
+                else:
+                    return else_code
             return cond_code + f"JPOS {inner_len + 2}\n" + inner_code + f"JUMP {else_len + 1}\n" + else_code
 
     @_('IF condition THEN commands ENDIF')
     def command(self, p):
-        cond_category, cond_code = p[1]
+        cond_category, cond_code, val = p[1]
         inner_code = p[3]
         inner_len = inner_code.count('\n')
 
         if cond_category == "EQ":
+            if val and val == 0:
+                return inner_code
             return cond_code + "JZERO 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "NEQ":
+            if val and val != 0:
+                return inner_code
             return cond_code + f"JZERO {inner_len + 1}\n" + inner_code
         if cond_category == "LE":
+            if val and val < 0:
+                return inner_code
             return cond_code + "JNEG 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "GEQ":
+            if val and val >= 0:
+                return inner_code
             return cond_code + f"JNEG {inner_len + 1}\n" + inner_code
         if cond_category == "GE":
+            if val and val > 0:
+                return inner_code
             return cond_code + "JPOS 2\n" + f"JUMP {inner_len + 1}\n" + inner_code
         if cond_category == "LEQ":
+            if val and val <= 0:
+                return inner_code
             return cond_code + f"JPOS {inner_len + 1}\n" + inner_code
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, p):
-        cond_category, cond_code = p[1]
+        cond_category, cond_code, _ = p[1]
         cond_len = cond_code.count('\n')
         inner_code = p[3]
         inner_len = inner_code.count('\n')
@@ -851,7 +1067,7 @@ class LangParser(Parser):
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, p):
         inner_code = p[1]
-        cond_category, cond_code = p[3]
+        cond_category, cond_code, _ = p[3]
         cond_len = cond_code.count('\n')
         inner_len = inner_code.count('\n')
 
@@ -1050,7 +1266,9 @@ class LangParser(Parser):
        'value LEQ value',
        'value GEQ value')
     def condition(self, p):
-        return (p[1], self.subtraction(p[0], p[2]))
+        if p[0][0] == "num" and p[2][0] == "num":
+            return (p[1], self.subtraction(p[0], p[2]), p[0][2]-p[2][2])
+        return (p[1], self.subtraction(p[0], p[2]), None)
 
     # loads value to register a
     @_('NUM')

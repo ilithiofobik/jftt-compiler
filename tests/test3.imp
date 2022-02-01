@@ -1,0 +1,105 @@
+(*
+ * Dodawanie punktów na krzywej eliptycznej
+ * Ex.
+ * [parametry krzywej: y^2 = x^3 - x nad F_71]
+ ? 71
+ ? 70
+ * [punkt A:]
+ ? 5
+ ? 7
+ * [punkt B:]
+ ? 32
+ ? 17
+ * [wynik:]
+ > 43
+ > 21
+ 
+ *)
+VAR
+    a_x, a_y, b_x, b_y, c_x, c_y,
+    f, cur_a, ( cur_b, )
+    dzielna, dzielnik, dzielnik_inv, zerotest,
+    finvpow
+BEGIN
+READ f;
+READ cur_a;
+(* Parametr B nie jest wymagany *)
+( READ cur_b; )
+
+READ a_x;
+READ a_y;
+READ b_x;
+READ b_y;
+
+zerotest ASSIGN a_x PLUS a_y;
+zerotest ASSIGN zerotest PLUS b_x;
+zerotest ASSIGN zerotest PLUS b_y;
+
+(* Prosty przypadek - przynajmniej jeden z punktów jest 0 - zwróć sumę arytmetyczną *)
+IF zerotest EQ 0 THEN
+    c_x ASSIGN a_x PLUS b_x;
+    c_y ASSIGN a_y PLUS b_y;
+ELSE
+    dzielna ASSIGN 0;
+    dzielnik ASSIGN 0;
+
+    IF a_x EQ b_x THEN
+        (* ax == bx && ay != by *)
+        (* dodanie punktów przeciwnych *)
+        IF a_y NEQ b_y THEN
+            c_x ASSIGN 0;
+            c_y ASSIGN 0;
+        (* podwojenie punktu *)
+        ELSE
+            dzielna  ASSIGN a_x TIMES a_x;      ( ax^2 )
+            dzielna  ASSIGN dzielna TIMES 3;    ( 3 * ax^2 )
+            dzielna  ASSIGN dzielna PLUS cur_a; ( 3 * ax^2 + A )
+            dzielnik ASSIGN a_y TIMES 2;        ( 2 * ay)
+            (* Redukcja modulo *)
+            dzielna  ASSIGN dzielna  MOD f;
+            dzielnik ASSIGN dzielnik MOD f;
+        ENDIF
+    ELSE
+        dzielna  ASSIGN a_y MINUS b_y; (ay - by)
+        dzielnik ASSIGN a_x MINUS b_x; (ax - bx)
+        (* Redukcja modulo *)
+        dzielna  ASSIGN dzielna  MOD f;
+        dzielnik ASSIGN dzielnik MOD f;
+    ENDIF
+
+    IF dzielnik NEQ 0 THEN
+        (* Odwrotność w ciele f przez potęgowanie - podnieś do potęgi f-2 *)
+        finvpow ASSIGN f MINUS 2;
+        dzielnik_inv ASSIGN 1;
+        WHILE finvpow GE 0 DO
+            zerotest ASSIGN finvpow MOD 2;
+            IF zerotest EQ 1 THEN
+                dzielnik_inv ASSIGN dzielnik_inv TIMES dzielnik;
+                dzielnik_inv ASSIGN dzielnik_inv MOD f;
+            ENDIF
+            finvpow ASSIGN finvpow DIV 2;
+            dzielnik ASSIGN dzielnik TIMES dzielnik;
+            dzielnik ASSIGN dzielnik MOD f;
+        ENDWHILE
+
+        zerotest ASSIGN dzielna TIMES dzielnik_inv;
+
+        c_x ASSIGN zerotest TIMES zerotest; ( s^2 )
+        c_x ASSIGN c_x MINUS a_x;           ( s^2 - ax)
+        c_x ASSIGN c_x MINUS b_x;           ( s^2 - ax - bx)
+
+        c_y ASSIGN c_x MINUS a_x;           ( cx - ax )
+        c_y ASSIGN c_y TIMES zerotest;      ( s[cx - ax] )
+        c_y ASSIGN c_y PLUS a_y;            ( ay + s[cx - ax] )
+
+        (* Redukcja modulo *)
+        c_x ASSIGN c_x MOD f;
+        c_y ASSIGN f MINUS c_y;
+        c_y ASSIGN c_y MOD f;
+    ENDIF
+ENDIF
+
+WRITE c_x;
+WRITE c_y;
+END
+

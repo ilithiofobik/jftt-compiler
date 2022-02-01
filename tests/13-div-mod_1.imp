@@ -39,4 +39,56 @@ BEGIN
     WRITE c;
     c ASSIGN a MOD b;
     WRITE c;
+
+    a ASSIGN 26;
+
+    c ASSIGN a DIV 7;
+    WRITE c;
+    c ASSIGN a MOD 7;
+    WRITE c;
+
+    c ASSIGN a DIV -7;
+    WRITE c;
+    c ASSIGN a MOD -7;
+    WRITE c;
+
+    a ASSIGN -26;
+
+    c ASSIGN a DIV -7;
+    WRITE c;
+    c ASSIGN a MOD -7;
+    WRITE c;
+
+    c ASSIGN a DIV 7;
+    WRITE c;
+    c ASSIGN a MOD 7;
+    WRITE c;
+
+    b ASSIGN 7;
+
+    c ASSIGN 26 DIV b;
+    WRITE c;
+    c ASSIGN 26 MOD b;
+    WRITE c;
+
+    b ASSIGN -7;
+    
+    c ASSIGN 26 DIV b;
+    WRITE c;
+    c ASSIGN 26 MOD b;
+    WRITE c;
+
+    c ASSIGN -26 DIV b;
+    WRITE c;
+    c ASSIGN -26 MOD b;
+    WRITE c;
+
+    b ASSIGN 7;
+
+    c ASSIGN -26 DIV b;
+    WRITE c;
+    c ASSIGN -26 MOD b;
+    WRITE c;
+
+
 END
